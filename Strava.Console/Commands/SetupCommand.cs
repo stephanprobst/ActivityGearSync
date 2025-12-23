@@ -21,30 +21,27 @@ public sealed class SetupCommand(ITokenStorageService tokenStorage)
         AnsiConsole.Write(panel);
         AnsiConsole.WriteLine();
 
-        AnsiConsole.MarkupLine("[bold yellow]Step 1:[/] Register Your API Application");
-        AnsiConsole.WriteLine();
-
         // Generate icon if it doesn't exist
         var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app-icon.png");
         IconGenerator.EnsureIconExists(iconPath);
 
-        var table = new Table()
+        AnsiConsole.MarkupLine("[bold yellow]Step 1:[/] Create Your API Application");
+        AnsiConsole.WriteLine();
+
+        var createTable = new Table()
             .Border(TableBorder.Rounded)
             .AddColumn("Field")
             .AddColumn("Value");
 
-        table.AddRow("Application Name", "[green]Activity Editor[/] (or any name, cannot contain 'Strava')");
-        table.AddRow("Category", "Any category");
-        table.AddRow("Website", "[cyan]http://localhost[/]");
-        table.AddRow("Authorization Callback Domain", "[cyan]localhost[/]");
-        table.AddRow("Application Icon", $"[cyan]{iconPath}[/]");
+        createTable.AddRow("Application Name", "[green]Activity Editor[/] (or any name, cannot contain 'Strava')");
+        createTable.AddRow("Category", "Any category");
+        createTable.AddRow("Website", "[cyan]http://localhost[/]");
+        createTable.AddRow("Authorization Callback Domain", "[cyan]localhost[/]");
 
         AnsiConsole.MarkupLine("1. Open [link=https://www.strava.com/settings/api]https://www.strava.com/settings/api[/] in your browser");
-        AnsiConsole.MarkupLine("2. Fill in the following:");
+        AnsiConsole.MarkupLine("2. Fill in the following and click [bold]Create[/]:");
         AnsiConsole.WriteLine();
-        AnsiConsole.Write(table);
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("3. After saving, you'll see your [bold]Client ID[/] and [bold]Client Secret[/]");
+        AnsiConsole.Write(createTable);
         AnsiConsole.WriteLine();
 
         if (AnsiConsole.Confirm("Would you like to open the Strava API settings page now?"))
@@ -67,7 +64,19 @@ public sealed class SetupCommand(ITokenStorageService tokenStorage)
             AnsiConsole.WriteLine();
         }
 
-        AnsiConsole.MarkupLine("[bold yellow]Step 2:[/] Enter Your API Credentials");
+        AnsiConsole.MarkupLine("[bold yellow]Step 2:[/] Upload Application Icon");
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("After creating the application, you must upload an icon before you can see your credentials.");
+        AnsiConsole.MarkupLine("A default icon has been created for you.");
+        AnsiConsole.MarkupLine($"Upload the icon from: [cyan]{iconPath}[/]");
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("Press any key once you've uploaded the icon...");
+        System.Console.ReadKey(true);
+        AnsiConsole.WriteLine();
+
+        AnsiConsole.MarkupLine("[bold yellow]Step 3:[/] Enter Your API Credentials");
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("After uploading the icon, you'll see your [bold]Client ID[/] and [bold]Client Secret[/].");
         AnsiConsole.WriteLine();
 
         var clientId = AnsiConsole.Prompt(
