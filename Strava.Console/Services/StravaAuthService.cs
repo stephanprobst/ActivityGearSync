@@ -6,7 +6,7 @@ using Strava.Console.Models;
 
 namespace Strava.Console.Services;
 
-public sealed class StravaAuthService(HttpClient httpClient, ITokenStorageService tokenStorage) : IStravaAuthService
+public sealed class StravaAuthService(HttpClient httpClient, TokenStorageService tokenStorage)
 {
     private const string AuthorizeUrl = "https://www.strava.com/oauth/authorize";
     private const string TokenUrl = "https://www.strava.com/oauth/token";

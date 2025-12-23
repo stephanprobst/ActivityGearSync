@@ -21,9 +21,9 @@ static void ConfigureServices(IServiceCollection services)
     services.AddSingleton<RateLimiter>();
 
     // Services
-    services.AddSingleton<ITokenStorageService, TokenStorageService>();
-    services.AddSingleton<IStravaAuthService, StravaAuthService>();
-    services.AddSingleton<IStravaApiService, StravaApiService>();
+    services.AddSingleton<TokenStorageService>();
+    services.AddSingleton<StravaAuthService>();
+    services.AddSingleton<StravaApiService>();
 
     // Commands
     services.AddTransient<SetupCommand>();
@@ -33,8 +33,8 @@ static void ConfigureServices(IServiceCollection services)
 
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
 {
-    var tokenStorage = serviceProvider.GetRequiredService<ITokenStorageService>();
-    var authService = serviceProvider.GetRequiredService<IStravaAuthService>();
+    var tokenStorage = serviceProvider.GetRequiredService<TokenStorageService>();
+    var authService = serviceProvider.GetRequiredService<StravaAuthService>();
 
     using var cts = new CancellationTokenSource();
     Console.CancelKeyPress += (_, _) =>
@@ -136,7 +136,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
 static async Task ExecuteMenuChoiceAsync(
     MenuChoice choice,
     ServiceProvider serviceProvider,
-    IStravaAuthService authService,
+    StravaAuthService authService,
     CancellationToken cancellationToken)
 {
     switch (choice)
@@ -192,7 +192,7 @@ static void DisplayHeader()
 
 static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, CancellationToken cancellationToken)
 {
-    var apiService = serviceProvider.GetRequiredService<IStravaApiService>();
+    var apiService = serviceProvider.GetRequiredService<StravaApiService>();
 
     AnsiConsole.Clear();
     AnsiConsole.MarkupLine("[bold]My Activities[/]");
@@ -289,7 +289,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
 
 static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationToken cancellationToken)
 {
-    var apiService = serviceProvider.GetRequiredService<IStravaApiService>();
+    var apiService = serviceProvider.GetRequiredService<StravaApiService>();
 
     AnsiConsole.Clear();
     AnsiConsole.MarkupLine("[bold]My Gear[/]");

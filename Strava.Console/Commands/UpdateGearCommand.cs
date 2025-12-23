@@ -5,7 +5,7 @@ using Strava.Console.Services;
 
 namespace Strava.Console.Commands;
 
-public sealed class UpdateGearCommand(IStravaApiService apiService, RateLimiter rateLimiter)
+public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter rateLimiter)
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {

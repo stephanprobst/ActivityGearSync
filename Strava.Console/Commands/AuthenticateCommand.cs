@@ -3,7 +3,7 @@ using Strava.Console.Services;
 
 namespace Strava.Console.Commands;
 
-public sealed class AuthenticateCommand(IStravaAuthService authService)
+public sealed class AuthenticateCommand(StravaAuthService authService)
 {
     public async Task<bool> ExecuteAsync(CancellationToken cancellationToken = default)
     {

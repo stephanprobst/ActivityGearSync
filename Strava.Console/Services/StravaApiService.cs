@@ -7,8 +7,8 @@ namespace Strava.Console.Services;
 
 public sealed class StravaApiService(
     HttpClient httpClient,
-    IStravaAuthService authService,
-    RateLimiter rateLimiter) : IStravaApiService
+    StravaAuthService authService,
+    RateLimiter rateLimiter)
 {
     private const string BaseUrl = "https://www.strava.com/api/v3";
 

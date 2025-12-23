@@ -4,7 +4,7 @@ using Strava.Console.Models;
 
 namespace Strava.Console.Services;
 
-public sealed class TokenStorageService : ITokenStorageService
+public sealed class TokenStorageService
 {
     private readonly string _storagePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

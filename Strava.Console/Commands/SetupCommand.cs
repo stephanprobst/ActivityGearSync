@@ -5,7 +5,7 @@ using Strava.Console.Services;
 
 namespace Strava.Console.Commands;
 
-public sealed class SetupCommand(ITokenStorageService tokenStorage)
+public sealed class SetupCommand(TokenStorageService tokenStorage)
 {
     public async Task ExecuteAsync()
     {
