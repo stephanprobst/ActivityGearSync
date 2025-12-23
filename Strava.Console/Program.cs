@@ -39,7 +39,8 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
     using var cts = new CancellationTokenSource();
     Console.CancelKeyPress += (_, _) =>
     {
-        AnsiConsole.MarkupLine("\n[yellow]Exiting...[/]");
+        AnsiConsole.Clear();
+        AnsiConsole.MarkupLine("[yellow]Exiting...[/]");
         cts.Cancel();
         Environment.Exit(0);
     };
