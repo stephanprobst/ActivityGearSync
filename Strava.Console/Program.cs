@@ -370,10 +370,27 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
         AnsiConsole.WriteLine();
     }
 
-    if (athlete.Bikes.Count == 0 && athlete.Shoes.Count == 0)
+    AnsiConsole.MarkupLine("[grey]Note: Strava does not support adding gear via external tools.[/]");
+    AnsiConsole.MarkupLine("[grey]Gear must be managed through the Strava website.[/]");
+    AnsiConsole.MarkupLine("[link]https://www.strava.com/settings/gear[/]");
+    AnsiConsole.WriteLine();
+
+    if (AnsiConsole.Confirm("Would you like to open the Strava gear settings page?", defaultValue: false))
     {
-        AnsiConsole.MarkupLine("[yellow]You haven't configured any gear in Strava yet.[/]");
-        AnsiConsole.MarkupLine("Add gear at: [link]https://www.strava.com/settings/gear[/]");
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "https://www.strava.com/settings/gear",
+                UseShellExecute = true
+            });
+            AnsiConsole.MarkupLine("[green]Browser opened.[/]");
+        }
+        catch
+        {
+            AnsiConsole.MarkupLine("[yellow]Could not open browser. Please navigate to:[/]");
+            AnsiConsole.MarkupLine("[link]https://www.strava.com/settings/gear[/]");
+        }
     }
 
     AnsiConsole.WriteLine();
