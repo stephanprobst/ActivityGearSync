@@ -3,7 +3,7 @@ using Strava.Console.Services;
 
 namespace Strava.Console.Commands;
 
-public sealed class AuthenticateCommand(StravaAuthService authService)
+public sealed class AuthenticateCommand(StravaAuthClient authClient)
 {
     public async Task<bool> ExecuteAsync(CancellationToken cancellationToken = default)
     {
@@ -27,7 +27,7 @@ public sealed class AuthenticateCommand(StravaAuthService authService)
                 .StartAsync("Waiting for authorization...", async ctx =>
                 {
                     ctx.Status("Opening browser for authorization...");
-                    return await authService.AuthenticateAsync(cancellationToken);
+                    return await authClient.AuthenticateAsync(cancellationToken);
                 });
 
             AnsiConsole.WriteLine();
@@ -40,21 +40,21 @@ public sealed class AuthenticateCommand(StravaAuthService authService)
 
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("Press any key to continue...");
-            System.Console.ReadKey(true);
+            System.Console.ReadKey(intercept: true);
             return true;
         }
         catch (OperationCanceledException)
         {
             AnsiConsole.MarkupLine("[yellow]Authentication was cancelled or timed out.[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
-            System.Console.ReadKey(true);
+            System.Console.ReadKey(intercept: true);
             return false;
         }
         catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"[red]Authentication failed: {ex.Message}[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
-            System.Console.ReadKey(true);
+            System.Console.ReadKey(intercept: true);
             return false;
         }
     }

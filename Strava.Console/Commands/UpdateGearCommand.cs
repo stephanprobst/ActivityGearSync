@@ -5,7 +5,7 @@ using Strava.Console.Services;
 
 namespace Strava.Console.Commands;
 
-public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter rateLimiter)
+public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
@@ -20,7 +20,7 @@ public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter r
             athlete = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .StartAsync("Fetching your gear...", async _ =>
-                    await apiService.GetAthleteAsync(cancellationToken));
+                    await apiClient.GetAthleteAsync(cancellationToken));
         }
         catch (Exception ex)
         {
@@ -65,7 +65,7 @@ public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter r
         List<StravaActivity> activities = [];
 
         await AnsiConsole.Progress()
-            .AutoClear(false)
+            .AutoClear(enabled: false)
             .Columns(
                 new TaskDescriptionColumn(),
                 new ProgressBarColumn(),
@@ -75,7 +75,7 @@ public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter r
                 var task = ctx.AddTask("[green]Fetching activities...[/]");
                 task.IsIndeterminate = true;
 
-                var result = await apiService.GetAllActivitiesAsync(
+                var result = await apiClient.GetAllActivitiesAsync(
                     new Progress<(int fetched, int total)>(p =>
                     {
                         task.Description = $"[green]Fetched {p.fetched} activities...[/]";
@@ -169,7 +169,7 @@ public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter r
         List<(StravaActivity Activity, string Error)> failedActivities = [];
 
         await AnsiConsole.Progress()
-            .AutoClear(false)
+            .AutoClear(enabled: false)
             .Columns(
                 new TaskDescriptionColumn(),
                 new ProgressBarColumn(),
@@ -190,7 +190,7 @@ public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter r
 
                     try
                     {
-                        await apiService.UpdateActivityGearAsync(activity.Id, targetGear?.Id, cancellationToken);
+                        await apiClient.UpdateActivityGearAsync(activity.Id, targetGear?.Id, cancellationToken);
                         successCount++;
                     }
                     catch (Exception ex)
@@ -314,6 +314,6 @@ public sealed class UpdateGearCommand(StravaApiService apiService, RateLimiter r
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("Press any key to continue...");
-        System.Console.ReadKey(true);
+        System.Console.ReadKey(intercept: true);
     }
 }

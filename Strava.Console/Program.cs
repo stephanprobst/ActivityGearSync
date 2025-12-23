@@ -22,8 +22,8 @@ static void ConfigureServices(IServiceCollection services)
 
     // Services
     services.AddSingleton<TokenStorageService>();
-    services.AddSingleton<StravaAuthService>();
-    services.AddSingleton<StravaApiService>();
+    services.AddSingleton<StravaAuthClient>();
+    services.AddSingleton<StravaApiClient>();
 
     // Commands
     services.AddTransient<SetupCommand>();
@@ -34,7 +34,7 @@ static void ConfigureServices(IServiceCollection services)
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
 {
     var tokenStorage = serviceProvider.GetRequiredService<TokenStorageService>();
-    var authService = serviceProvider.GetRequiredService<StravaAuthService>();
+    var authService = serviceProvider.GetRequiredService<StravaAuthClient>();
 
     using var cts = new CancellationTokenSource();
     Console.CancelKeyPress += (_, _) =>
@@ -99,7 +99,7 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
         {
             AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
-            Console.ReadKey(true);
+            Console.ReadKey(intercept: true);
         }
     }
 }
@@ -136,7 +136,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
 static async Task ExecuteMenuChoiceAsync(
     MenuChoice choice,
     ServiceProvider serviceProvider,
-    StravaAuthService authService,
+    StravaAuthClient authClient,
     CancellationToken cancellationToken)
 {
     switch (choice)
@@ -160,10 +160,10 @@ static async Task ExecuteMenuChoiceAsync(
             break;
 
         case MenuChoice.Logout:
-            await authService.LogoutAsync();
+            await authClient.LogoutAsync();
             AnsiConsole.MarkupLine("[green]Logged out successfully.[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
-            Console.ReadKey(true);
+            Console.ReadKey(intercept: true);
             break;
 
         case MenuChoice.ReconfigureCredentials:
@@ -192,7 +192,7 @@ static void DisplayHeader()
 
 static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, CancellationToken cancellationToken)
 {
-    var apiService = serviceProvider.GetRequiredService<StravaApiService>();
+    var apiService = serviceProvider.GetRequiredService<StravaApiClient>();
 
     AnsiConsole.Clear();
     AnsiConsole.MarkupLine("[bold]My Activities[/]");
@@ -206,7 +206,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
     var now = DateTime.Now;
     var (after, _) = dateRange switch
     {
-        "Last 7 days" => ((DateTime?)now.AddDays(-7), (DateTime?)null),
+        "Last 7 days" => (now.AddDays(-7), null),
         "Last 30 days" => (now.AddDays(-30), null),
         "Last 90 days" => (now.AddDays(-90), null),
         "This year" => (new DateTime(now.Year, 1, 1), null),
@@ -216,7 +216,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
     List<StravaActivity>? activities = null;
 
     await AnsiConsole.Progress()
-        .AutoClear(false)
+        .AutoClear(enabled: false)
         .Columns(
             new TaskDescriptionColumn(),
             new ProgressBarColumn(),
@@ -226,12 +226,13 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
             var task = ctx.AddTask("[green]Fetching activities...[/]");
             task.IsIndeterminate = true;
 
-            activities = await apiService.GetAllActivitiesAsync(
+            activities = (await apiService.GetAllActivitiesAsync(
                 new Progress<(int fetched, int total)>(p =>
                 {
                     task.Description = $"[green]Fetched {p.fetched} activities...[/]";
                 }),
-                after, null, cancellationToken);
+                after, before: null, cancellationToken))
+                .ToList();
 
             task.IsIndeterminate = false;
             task.Value = 100;
@@ -247,7 +248,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
     {
         // Fetch athlete for gear names
         var athlete = await apiService.GetAthleteAsync(cancellationToken);
-        var allGear = athlete.AllGear.ToDictionary(g => g.Id, g => g.Name);
+        var allGear = athlete.AllGear.ToDictionary(g => g.Id, g => g.Name, StringComparer.Ordinal);
 
         var table = new Table()
             .Border(TableBorder.Rounded)
@@ -284,12 +285,12 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
 
     AnsiConsole.WriteLine();
     AnsiConsole.MarkupLine("Press any key to continue...");
-    Console.ReadKey(true);
+    Console.ReadKey(intercept: true);
 }
 
 static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationToken cancellationToken)
 {
-    var apiService = serviceProvider.GetRequiredService<StravaApiService>();
+    var apiService = serviceProvider.GetRequiredService<StravaApiClient>();
 
     AnsiConsole.Clear();
     AnsiConsole.MarkupLine("[bold]My Gear[/]");
@@ -308,7 +309,7 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
     {
         AnsiConsole.MarkupLine("[red]Failed to fetch gear.[/]");
         AnsiConsole.MarkupLine("Press any key to continue...");
-        Console.ReadKey(true);
+        Console.ReadKey(intercept: true);
         return;
     }
 
@@ -395,7 +396,7 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
 
     AnsiConsole.WriteLine();
     AnsiConsole.MarkupLine("Press any key to continue...");
-    Console.ReadKey(true);
+    Console.ReadKey(intercept: true);
 }
 
 enum MenuChoice

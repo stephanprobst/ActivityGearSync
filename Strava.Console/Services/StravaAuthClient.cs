@@ -6,7 +6,7 @@ using Strava.Console.Models;
 
 namespace Strava.Console.Services;
 
-public sealed class StravaAuthService(HttpClient httpClient, TokenStorageService tokenStorage)
+public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService tokenStorage)
 {
     private const string AuthorizeUrl = "https://www.strava.com/oauth/authorize";
     private const string TokenUrl = "https://www.strava.com/oauth/token";
@@ -14,8 +14,6 @@ public sealed class StravaAuthService(HttpClient httpClient, TokenStorageService
     private const string Scopes = "read,activity:read_all,activity:write";
 
     private StravaTokens? _cachedTokens;
-
-    public bool IsAuthenticated => _cachedTokens is not null || tokenStorage.HasStoredTokens();
 
     public async Task<StravaTokens?> GetValidTokensAsync()
     {
@@ -62,12 +60,12 @@ public sealed class StravaAuthService(HttpClient httpClient, TokenStorageService
         return tokens;
     }
 
-    public async Task<StravaTokens> RefreshTokensAsync(string refreshToken)
+    private async Task<StravaTokens> RefreshTokensAsync(string refreshToken)
     {
         var credentials = await tokenStorage.LoadCredentialsAsync()
             ?? throw new InvalidOperationException("API credentials not configured.");
 
-        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["client_id"] = credentials.ClientId,
             ["client_secret"] = credentials.ClientSecret,
@@ -143,7 +141,7 @@ public sealed class StravaAuthService(HttpClient httpClient, TokenStorageService
 
     private async Task<StravaTokens> ExchangeCodeForTokensAsync(string code, ApiCredentials credentials)
     {
-        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+        var content = new FormUrlEncodedContent(new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["client_id"] = credentials.ClientId,
             ["client_secret"] = credentials.ClientSecret,

@@ -5,9 +5,9 @@ using Strava.Console.Models;
 
 namespace Strava.Console.Services;
 
-public sealed class StravaApiService(
+public sealed class StravaApiClient(
     HttpClient httpClient,
-    StravaAuthService authService,
+    StravaAuthClient authClient,
     RateLimiter rateLimiter)
 {
     private const string BaseUrl = "https://www.strava.com/api/v3";
@@ -22,7 +22,7 @@ public sealed class StravaApiService(
             ?? throw new InvalidOperationException("Failed to deserialize athlete response.");
     }
 
-    public async Task<List<StravaActivity>> GetActivitiesAsync(
+    private async Task<List<StravaActivity>> GetActivitiesAsync(
         int page = 1,
         int perPage = 100,
         DateTime? after = null,
@@ -50,7 +50,7 @@ public sealed class StravaApiService(
             ?? [];
     }
 
-    public async Task<List<StravaActivity>> GetAllActivitiesAsync(
+    public async Task<IEnumerable<StravaActivity>> GetAllActivitiesAsync(
         IProgress<(int fetched, int total)>? progress = null,
         DateTime? after = null,
         DateTime? before = null,
@@ -102,7 +102,7 @@ public sealed class StravaApiService(
 
     private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string endpoint)
     {
-        var tokens = await authService.GetValidTokensAsync()
+        var tokens = await authClient.GetValidTokensAsync()
             ?? throw new InvalidOperationException("Not authenticated. Please authenticate first.");
 
         var request = new HttpRequestMessage(method, $"{BaseUrl}{endpoint}");

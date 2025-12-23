@@ -71,7 +71,7 @@ public sealed class SetupCommand(TokenStorageService tokenStorage)
         AnsiConsole.MarkupLine($"Upload the icon from: [cyan]{iconPath}[/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("Press any key once you've uploaded the icon...");
-        System.Console.ReadKey(true);
+        System.Console.ReadKey(intercept: true);
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLine("[bold yellow]Step 3:[/] Enter Your API Credentials");
@@ -110,6 +110,6 @@ public sealed class SetupCommand(TokenStorageService tokenStorage)
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLine("Press any key to continue...");
-        System.Console.ReadKey(true);
+        System.Console.ReadKey(intercept: true);
     }
 }
