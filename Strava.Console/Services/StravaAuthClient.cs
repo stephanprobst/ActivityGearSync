@@ -43,7 +43,7 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
         var credentials = await tokenStorage.LoadCredentialsAsync()
             ?? throw new InvalidOperationException("API credentials not configured. Please run setup first.");
 
-        var authUrl = BuildAuthorizationUrl(credentials.ClientId);
+        string authUrl = BuildAuthorizationUrl(credentials.ClientId);
 
         using var listener = new HttpListener();
         listener.Prefixes.Add("http://localhost:5678/");
@@ -51,7 +51,7 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
 
         OpenBrowser(authUrl);
 
-        var code = await WaitForCallbackAsync(listener, cancellationToken);
+        string code = await WaitForCallbackAsync(listener, cancellationToken);
 
         var tokens = await ExchangeCodeForTokensAsync(code, credentials);
         await tokenStorage.SaveTokensAsync(tokens);
@@ -116,21 +116,21 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
         }
 
         var context = await contextTask;
-        var code = context.Request.QueryString["code"]
-            ?? throw new InvalidOperationException("No authorization code received.");
+        string code = context.Request.QueryString["code"]
+                      ?? throw new InvalidOperationException("No authorization code received.");
 
-        var responseHtml = """
-            <!DOCTYPE html>
-            <html>
-            <head><title>Authentication Successful</title></head>
-            <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h1>Authentication Successful!</h1>
-                <p>You can close this window and return to the application.</p>
-            </body>
-            </html>
-            """;
+        string responseHtml = """
+                              <!DOCTYPE html>
+                              <html>
+                              <head><title>Authentication Successful</title></head>
+                              <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                                  <h1>Authentication Successful!</h1>
+                                  <p>You can close this window and return to the application.</p>
+                              </body>
+                              </html>
+                              """;
 
-        var buffer = System.Text.Encoding.UTF8.GetBytes(responseHtml);
+        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseHtml);
         context.Response.ContentType = "text/html";
         context.Response.ContentLength64 = buffer.Length;
         await context.Response.OutputStream.WriteAsync(buffer, cancellationToken);

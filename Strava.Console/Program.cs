@@ -73,7 +73,7 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
         }
         AnsiConsole.WriteLine();
 
-        var isAuthenticated = tokens is not null;
+        bool isAuthenticated = tokens is not null;
         var choices = BuildMenuChoices(isAuthenticated);
 
         var choice = AnsiConsole.Prompt(
@@ -198,7 +198,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
     AnsiConsole.MarkupLine("[bold]My Activities[/]");
     AnsiConsole.WriteLine();
 
-    var dateRange = AnsiConsole.Prompt(
+    string dateRange = AnsiConsole.Prompt(
         new SelectionPrompt<string>()
             .Title("Select [green]date range[/]:")
             .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"));
@@ -261,7 +261,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
 
         foreach (var activity in activities.Take(20))
         {
-            var gearName = activity.GearId is null
+            string gearName = activity.GearId is null
                 ? "[grey]None[/]"
                 : allGear.GetValueOrDefault(activity.GearId, "[grey]Unknown[/]");
 

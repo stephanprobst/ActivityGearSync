@@ -13,7 +13,7 @@ public static class IconGenerator
             return;
         }
 
-        var directory = Path.GetDirectoryName(outputPath);
+        string? directory = Path.GetDirectoryName(outputPath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
@@ -24,7 +24,7 @@ public static class IconGenerator
 
     private static void WriteIcon(string outputPath)
     {
-        var iconBytes = Convert.FromBase64String(IconBase64);
+        byte[] iconBytes = Convert.FromBase64String(IconBase64);
         File.WriteAllBytes(outputPath, iconBytes);
     }
 }

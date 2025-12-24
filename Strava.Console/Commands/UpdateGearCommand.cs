@@ -42,17 +42,17 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         AnsiConsole.MarkupLine("[bold yellow]Step 1:[/] Filter Activities");
         AnsiConsole.WriteLine();
 
-        var activityType = AnsiConsole.Prompt(
+        string activityType = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Select [green]activity type[/]:")
                 .AddChoices("All Types", "Run", "Ride", "Walk", "Hike", "Swim", "Other"));
 
-        var dateRange = AnsiConsole.Prompt(
+        string dateRange = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Select [green]date range[/]:")
                 .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"));
 
-        var gearFilter = AnsiConsole.Prompt(
+        string gearFilter = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Filter by [green]current gear[/]:")
                 .AddChoices(["All activities", "No gear assigned", .. allGear.Select(g => g.Name)]));
@@ -132,7 +132,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         const string removeGearChoice = "[Remove gear]";
         List<string> gearChoices = [removeGearChoice, .. allGear.Select(g => $"{g.Name} ({g.FormattedDistance})")];
 
-        var selectedGearName = AnsiConsole.Prompt(
+        string selectedGearName = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Select [green]gear to assign[/]:")
                 .AddChoices(gearChoices));
@@ -166,7 +166,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
         // Step 7: Execute updates
         AnsiConsole.WriteLine();
-        var successCount = 0;
+        int successCount = 0;
         List<(StravaActivity Activity, string Error)> failedActivities = [];
 
         await AnsiConsole.Progress()
@@ -201,7 +201,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
                     task.Increment(1);
 
-                    var remaining = rateLimiter.RemainingRequests;
+                    int remaining = rateLimiter.RemainingRequests;
                     if (remaining < 10)
                     {
                         task.Description = $"[yellow]Rate limit low ({remaining}/100). Slowing down...[/]";
@@ -222,7 +222,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         if (failedActivities.Count > 0)
         {
             AnsiConsole.MarkupLine($"[red]Failed to update {failedActivities.Count} activities:[/]");
-            foreach (var (activity, error) in failedActivities.Take(5))
+            foreach ((var activity, string error) in failedActivities.Take(5))
             {
                 AnsiConsole.MarkupLine($"  [grey]- {activity.Name}: {error}[/]");
             }
@@ -248,7 +248,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
         foreach (var activity in activities.Take(10))
         {
-            var gearName = activity.GearId is null
+            string gearName = activity.GearId is null
                 ? "[grey]None[/]"
                 : allGear.FirstOrDefault(g => string.Equals(g.Id, activity.GearId, StringComparison.OrdinalIgnoreCase))?.Name ?? "[grey]Unknown[/]";
 

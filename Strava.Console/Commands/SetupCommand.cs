@@ -22,7 +22,7 @@ public sealed class SetupCommand(TokenStorageService tokenStorage)
         AnsiConsole.WriteLine();
 
         // Generate icon if it doesn't exist
-        var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app-icon.png");
+        string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app-icon.png");
         IconGenerator.EnsureIconExists(iconPath);
 
         AnsiConsole.MarkupLine("[bold yellow]Step 1:[/] Create Your API Application");
@@ -79,13 +79,13 @@ public sealed class SetupCommand(TokenStorageService tokenStorage)
         AnsiConsole.MarkupLine("After uploading the icon, you'll see your [bold]Client ID[/] and [bold]Client Secret[/].");
         AnsiConsole.WriteLine();
 
-        var clientId = AnsiConsole.Prompt(
+        string clientId = AnsiConsole.Prompt(
             new TextPrompt<string>("Enter your [bold]Client ID[/]:")
                 .Validate(id => !string.IsNullOrWhiteSpace(id)
                     ? ValidationResult.Success()
                     : ValidationResult.Error("Client ID is required")));
 
-        var clientSecret = AnsiConsole.Prompt(
+        string clientSecret = AnsiConsole.Prompt(
             new TextPrompt<string>("Enter your [bold]Client Secret[/]:")
                 .Secret()
                 .Validate(secret => !string.IsNullOrWhiteSpace(secret)

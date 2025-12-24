@@ -18,17 +18,17 @@ public static class EncryptionHelper
             return string.Empty;
         }
 
-        var key = GetOrCreateKey();
+        byte[] key = GetOrCreateKey();
         using var aes = Aes.Create();
         aes.Key = key;
         aes.GenerateIV();
 
         using var encryptor = aes.CreateEncryptor();
-        var plainBytes = Encoding.UTF8.GetBytes(plainText);
-        var encryptedBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
+        byte[] plainBytes = Encoding.UTF8.GetBytes(plainText);
+        byte[] encryptedBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
 
         // Prepend IV to encrypted data
-        var result = new byte[aes.IV.Length + encryptedBytes.Length];
+        byte[] result = new byte[aes.IV.Length + encryptedBytes.Length];
         aes.IV.CopyTo(result, 0);
         encryptedBytes.CopyTo(result, aes.IV.Length);
 
@@ -42,29 +42,29 @@ public static class EncryptionHelper
             return string.Empty;
         }
 
-        var key = GetOrCreateKey();
-        var fullCipher = Convert.FromBase64String(encryptedText);
+        byte[] key = GetOrCreateKey();
+        byte[] fullCipher = Convert.FromBase64String(encryptedText);
 
         using var aes = Aes.Create();
         aes.Key = key;
 
         // Extract IV from beginning of cipher text
-        var iv = new byte[aes.BlockSize / 8];
-        var cipherBytes = new byte[fullCipher.Length - iv.Length];
+        byte[] iv = new byte[aes.BlockSize / 8];
+        byte[] cipherBytes = new byte[fullCipher.Length - iv.Length];
         Array.Copy(fullCipher, 0, iv, 0, iv.Length);
         Array.Copy(fullCipher, iv.Length, cipherBytes, 0, cipherBytes.Length);
 
         aes.IV = iv;
 
         using var decryptor = aes.CreateDecryptor();
-        var plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+        byte[] plainBytes = decryptor.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
 
         return Encoding.UTF8.GetString(plainBytes);
     }
 
     private static byte[] GetOrCreateKey()
     {
-        var directory = Path.GetDirectoryName(KeyFilePath)!;
+        string directory = Path.GetDirectoryName(KeyFilePath)!;
         if (!Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
@@ -76,7 +76,7 @@ public static class EncryptionHelper
         }
 
         // Generate new 256-bit key
-        var key = RandomNumberGenerator.GetBytes(32);
+        byte[] key = RandomNumberGenerator.GetBytes(32);
         File.WriteAllText(KeyFilePath, Convert.ToBase64String(key));
 
         // Try to hide the key file

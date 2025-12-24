@@ -31,7 +31,7 @@ public sealed class StravaApiClient(
     {
         await rateLimiter.WaitIfNeededAsync(cancellationToken);
 
-        var url = $"/athlete/activities?page={page}&per_page={perPage}";
+        string url = $"/athlete/activities?page={page}&per_page={perPage}";
         if (after.HasValue)
         {
             url += $"&after={new DateTimeOffset(after.Value).ToUnixTimeSeconds()}";
@@ -57,7 +57,7 @@ public sealed class StravaApiClient(
         CancellationToken cancellationToken = default)
     {
         List<StravaActivity> allActivities = [];
-        var page = 1;
+        int page = 1;
         const int perPage = 100;
 
         while (!cancellationToken.IsCancellationRequested)

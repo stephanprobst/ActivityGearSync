@@ -38,8 +38,8 @@ public sealed class TokenStorageService
 
         try
         {
-            var encryptedJson = await File.ReadAllTextAsync(_tokensFilePath);
-            var json = EncryptionHelper.Decrypt(encryptedJson);
+            string encryptedJson = await File.ReadAllTextAsync(_tokensFilePath);
+            string json = EncryptionHelper.Decrypt(encryptedJson);
             return JsonSerializer.Deserialize<StravaTokens>(json);
         }
         catch
@@ -51,8 +51,8 @@ public sealed class TokenStorageService
     public async Task SaveTokensAsync(StravaTokens tokens)
     {
         EnsureDirectoryExists();
-        var json = JsonSerializer.Serialize(tokens, JsonOptions);
-        var encryptedJson = EncryptionHelper.Encrypt(json);
+        string json = JsonSerializer.Serialize(tokens, JsonOptions);
+        string encryptedJson = EncryptionHelper.Encrypt(json);
         await File.WriteAllTextAsync(_tokensFilePath, encryptedJson);
     }
 
@@ -75,8 +75,8 @@ public sealed class TokenStorageService
 
         try
         {
-            var encryptedJson = await File.ReadAllTextAsync(_credentialsFilePath);
-            var json = EncryptionHelper.Decrypt(encryptedJson);
+            string encryptedJson = await File.ReadAllTextAsync(_credentialsFilePath);
+            string json = EncryptionHelper.Decrypt(encryptedJson);
             return JsonSerializer.Deserialize<ApiCredentials>(json);
         }
         catch
@@ -88,8 +88,8 @@ public sealed class TokenStorageService
     public async Task SaveCredentialsAsync(ApiCredentials credentials)
     {
         EnsureDirectoryExists();
-        var json = JsonSerializer.Serialize(credentials, JsonOptions);
-        var encryptedJson = EncryptionHelper.Encrypt(json);
+        string json = JsonSerializer.Serialize(credentials, JsonOptions);
+        string encryptedJson = EncryptionHelper.Encrypt(json);
         await File.WriteAllTextAsync(_credentialsFilePath, encryptedJson);
     }
 
