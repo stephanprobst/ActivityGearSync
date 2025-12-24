@@ -8,13 +8,13 @@ public sealed class StravaActivity
     public long Id { get; init; }
 
     [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    public required string Name { get; init; }
 
     [JsonPropertyName("type")]
-    public string Type { get; init; } = string.Empty;
+    public required string Type { get; init; }
 
     [JsonPropertyName("sport_type")]
-    public string SportType { get; init; } = string.Empty;
+    public required string SportType { get; init; }
 
     [JsonPropertyName("start_date_local")]
     public DateTime StartDateLocal { get; init; }

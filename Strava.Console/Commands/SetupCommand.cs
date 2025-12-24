@@ -7,7 +7,7 @@ namespace Strava.Console.Commands;
 
 public sealed class SetupCommand(TokenStorageService tokenStorage)
 {
-    public async Task ExecuteAsync()
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         AnsiConsole.Clear();
 
@@ -44,7 +44,7 @@ public sealed class SetupCommand(TokenStorageService tokenStorage)
         AnsiConsole.Write(createTable);
         AnsiConsole.WriteLine();
 
-        if (AnsiConsole.Confirm("Would you like to open the Strava API settings page now?"))
+        if (await AnsiConsole.ConfirmAsync("Would you like to open the Strava API settings page now?", cancellationToken: cancellationToken))
         {
             try
             {
@@ -79,18 +79,18 @@ public sealed class SetupCommand(TokenStorageService tokenStorage)
         AnsiConsole.MarkupLine("After uploading the icon, you'll see your [bold]Client ID[/] and [bold]Client Secret[/].");
         AnsiConsole.WriteLine();
 
-        string clientId = AnsiConsole.Prompt(
+        string clientId = await AnsiConsole.PromptAsync(
             new TextPrompt<string>("Enter your [bold]Client ID[/]:")
                 .Validate(id => !string.IsNullOrWhiteSpace(id)
                     ? ValidationResult.Success()
-                    : ValidationResult.Error("Client ID is required")));
+                    : ValidationResult.Error("Client ID is required")), cancellationToken);
 
-        string clientSecret = AnsiConsole.Prompt(
+        string clientSecret = await AnsiConsole.PromptAsync(
             new TextPrompt<string>("Enter your [bold]Client Secret[/]:")
                 .Secret()
                 .Validate(secret => !string.IsNullOrWhiteSpace(secret)
                     ? ValidationResult.Success()
-                    : ValidationResult.Error("Client Secret is required")));
+                    : ValidationResult.Error("Client Secret is required")), cancellationToken);
 
         var credentials = new ApiCredentials
         {

@@ -366,10 +366,7 @@ dotnet_diagnostic.MA0016.severity = suggestion
 dotnet_diagnostic.MA0047.severity = suggestion
 
 # MA0048: File name must match type name - Allow multiple types per file
-dotnet_diagnostic.MA0048.severity = suggestion
-
-# MA0011: IFormatProvider parameter - Often unnecessary for console output
-dotnet_diagnostic.MA0011.severity = suggestion
+dotnet_diagnostic.MA0048.severity = none
 
 # MA0026: Fix TODO comments - Allow TODOs
 dotnet_diagnostic.MA0026.severity = suggestion
@@ -380,11 +377,11 @@ dotnet_diagnostic.MA0051.severity = none
 # MA0006: Use string.Equals instead of == operator
 dotnet_diagnostic.MA0006.severity = warning
 
-# MA0074: Use StringComparison overload - Valid but often unnecessary
-dotnet_diagnostic.MA0074.severity = suggestion
-
 # MA0007: Add comma after last item in initializer
 dotnet_diagnostic.MA0007.severity = none
+
+# MA0040: Use an overload with a CancellationToken
+dotnet_diagnostic.MA0040.severity = warning
 
 ###############################
 # SonarAnalyzer
@@ -394,10 +391,7 @@ dotnet_diagnostic.MA0007.severity = none
 dotnet_diagnostic.S1075.severity = none
 
 # S3903: Move type into named namespace - Allow file-local types
-dotnet_diagnostic.S3903.severity = suggestion
-
-# S6966: Use async prompt methods - Spectre.Console sync methods are fine
-dotnet_diagnostic.S6966.severity = suggestion
+dotnet_diagnostic.S3903.severity = none
 
 # S1135: Track uses of TODO tags
 dotnet_diagnostic.S1135.severity = suggestion
@@ -420,7 +414,7 @@ dotnet_diagnostic.AsyncFixer01.severity = none
 dotnet_diagnostic.RCS1021.severity = suggestion
 
 # RCS1036: Remove unnecessary blank line
-dotnet_diagnostic.RCS1036.severity = suggestion
+dotnet_diagnostic.RCS1036.severity = warning
 
 # RCS1102: Make class static - May be intentional
 dotnet_diagnostic.RCS1102.severity = suggestion

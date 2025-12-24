@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Strava.Console.Commands;
@@ -53,7 +54,7 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
         AnsiConsole.WriteLine();
 
         var setupCommand = serviceProvider.GetRequiredService<SetupCommand>();
-        await setupCommand.ExecuteAsync();
+        await setupCommand.ExecuteAsync(cts.Token);
     }
 
     // Main loop
@@ -76,12 +77,11 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
         bool isAuthenticated = tokens is not null;
         var choices = BuildMenuChoices(isAuthenticated);
 
-        var choice = AnsiConsole.Prompt(
-            new SelectionPrompt<MenuItem>()
+        var choice = await AnsiConsole.PromptAsync(new SelectionPrompt<MenuItem>()
                 .Title("What would you like to do?")
                 .PageSize(10)
                 .UseConverter(item => item.DisplayText)
-                .AddChoices(choices));
+                .AddChoices(choices), cts.Token);
 
         try
         {
@@ -168,7 +168,7 @@ static async Task ExecuteMenuChoiceAsync(
 
         case MenuChoice.ReconfigureCredentials:
             var setupCommand = serviceProvider.GetRequiredService<SetupCommand>();
-            await setupCommand.ExecuteAsync();
+            await setupCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.Exit:
@@ -198,10 +198,9 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
     AnsiConsole.MarkupLine("[bold]My Activities[/]");
     AnsiConsole.WriteLine();
 
-    string dateRange = AnsiConsole.Prompt(
-        new SelectionPrompt<string>()
+    string dateRange = await AnsiConsole.PromptAsync(new SelectionPrompt<string>()
             .Title("Select [green]date range[/]:")
-            .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"));
+            .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"), cancellationToken);
 
     var now = DateTime.Now;
     var (after, _) = dateRange switch
@@ -266,7 +265,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
                 : allGear.GetValueOrDefault(activity.GearId, "[grey]Unknown[/]");
 
             table.AddRow(
-                activity.StartDateLocal.ToString("MMM dd yyyy"),
+                activity.StartDateLocal.ToString("MMM dd yyyy", CultureInfo.InvariantCulture),
                 activity.Name.Length > 30 ? activity.Name[..27] + "..." : activity.Name,
                 activity.Type,
                 activity.FormattedDistance,
@@ -376,7 +375,7 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
     AnsiConsole.MarkupLine("[link]https://www.strava.com/settings/gear[/]");
     AnsiConsole.WriteLine();
 
-    if (AnsiConsole.Confirm("Would you like to open the Strava gear settings page?", defaultValue: false))
+    if (await AnsiConsole.ConfirmAsync("Would you like to open the Strava gear settings page?", defaultValue: false, cancellationToken))
     {
         try
         {
@@ -399,7 +398,7 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
     Console.ReadKey(intercept: true);
 }
 
-enum MenuChoice
+internal enum MenuChoice
 {
     UpdateGear,
     ViewActivities,
@@ -411,4 +410,4 @@ enum MenuChoice
     Separator
 }
 
-record MenuItem(MenuChoice Choice, string DisplayText);
+internal record MenuItem(MenuChoice Choice, string DisplayText);

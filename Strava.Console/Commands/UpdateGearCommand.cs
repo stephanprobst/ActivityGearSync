@@ -1,3 +1,4 @@
+using System.Globalization;
 using Spectre.Console;
 using Strava.Console.Infrastructure;
 using Strava.Console.Models;
@@ -7,7 +8,7 @@ namespace Strava.Console.Commands;
 
 public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
 {
-    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
+    public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         AnsiConsole.Clear();
         AnsiConsole.MarkupLine("[bold]Update Gear on Activities[/]");
@@ -42,20 +43,20 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         AnsiConsole.MarkupLine("[bold yellow]Step 1:[/] Filter Activities");
         AnsiConsole.WriteLine();
 
-        string activityType = AnsiConsole.Prompt(
+        string activityType = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]activity type[/]:")
-                .AddChoices("All Types", "Run", "Ride", "Walk", "Hike", "Swim", "Other"));
+                .AddChoices("All Types", "Run", "Ride", "Walk", "Hike", "Swim", "Other"), cancellationToken);
 
-        string dateRange = AnsiConsole.Prompt(
+        string dateRange = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]date range[/]:")
-                .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"));
+                .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"), cancellationToken);
 
-        string gearFilter = AnsiConsole.Prompt(
+        string gearFilter = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Filter by [green]current gear[/]:")
-                .AddChoices(["All activities", "No gear assigned", .. allGear.Select(g => g.Name)]));
+                .AddChoices(["All activities", "No gear assigned", .. allGear.Select(g => g.Name)]), cancellationToken);
 
         // Calculate date filter
         var (after, before) = CalculateDateRange(dateRange);
@@ -108,14 +109,14 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
         DisplayActivitiesTable(filtered, allGear);
 
-        var selectedActivities = AnsiConsole.Prompt(
+        var selectedActivities = await AnsiConsole.PromptAsync(
             new MultiSelectionPrompt<StravaActivity>()
                 .Title("Select activities to update:")
                 .PageSize(15)
                 .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
                 .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {a.Name} ({a.FormattedDistance})")
-                .AddChoices(filtered));
+                .AddChoices(filtered), cancellationToken);
 
         if (selectedActivities.Count == 0)
         {
@@ -132,13 +133,13 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         const string removeGearChoice = "[Remove gear]";
         List<string> gearChoices = [removeGearChoice, .. allGear.Select(g => $"{g.Name} ({g.FormattedDistance})")];
 
-        string selectedGearName = AnsiConsole.Prompt(
+        string selectedGearName = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]gear to assign[/]:")
-                .AddChoices(gearChoices));
+                .AddChoices(gearChoices), cancellationToken);
 
         var targetGear = string.Equals(selectedGearName, removeGearChoice, StringComparison.OrdinalIgnoreCase) ? null
-            : allGear.FirstOrDefault(g => selectedGearName.StartsWith(g.Name));
+            : allGear.FirstOrDefault(g => selectedGearName.StartsWith(g.Name, StringComparison.OrdinalIgnoreCase));
 
         // Step 6: Confirm
         AnsiConsole.WriteLine();
@@ -157,7 +158,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         AnsiConsole.Write(confirmTable);
         AnsiConsole.WriteLine();
 
-        if (!AnsiConsole.Confirm("Proceed with update?"))
+        if (!await AnsiConsole.ConfirmAsync("Proceed with update?", cancellationToken: cancellationToken))
         {
             AnsiConsole.MarkupLine("[yellow]Update cancelled.[/]");
             WaitForKey();
@@ -253,7 +254,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                 : allGear.FirstOrDefault(g => string.Equals(g.Id, activity.GearId, StringComparison.OrdinalIgnoreCase))?.Name ?? "[grey]Unknown[/]";
 
             table.AddRow(
-                activity.StartDateLocal.ToString("MMM dd"),
+                activity.StartDateLocal.ToString("MMM dd", CultureInfo.InvariantCulture),
                 activity.Name.Length > 25 ? activity.Name[..22] + "..." : activity.Name,
                 activity.Type,
                 activity.FormattedDistance,

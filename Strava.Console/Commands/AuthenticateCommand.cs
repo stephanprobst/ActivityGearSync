@@ -5,7 +5,7 @@ namespace Strava.Console.Commands;
 
 public sealed class AuthenticateCommand(StravaAuthClient authClient)
 {
-    public async Task<bool> ExecuteAsync(CancellationToken cancellationToken = default)
+    public async Task<bool> ExecuteAsync(CancellationToken cancellationToken)
     {
         AnsiConsole.Clear();
         AnsiConsole.MarkupLine("[bold]Authenticate with Strava[/]");
@@ -15,7 +15,7 @@ public sealed class AuthenticateCommand(StravaAuthClient authClient)
         AnsiConsole.MarkupLine("After authorizing, you'll be redirected back automatically.");
         AnsiConsole.WriteLine();
 
-        if (!AnsiConsole.Confirm("Proceed with authentication?"))
+        if (!await AnsiConsole.ConfirmAsync("Proceed with authentication?", cancellationToken: cancellationToken))
         {
             return false;
         }
