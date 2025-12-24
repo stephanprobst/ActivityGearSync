@@ -88,9 +88,10 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
             });
 
         // Apply filters
-        var filtered = activities
-            .Where(a => activityType == "All Types" || MatchesActivityType(a, activityType))
-            .Where(a => MatchesGearFilter(a, gearFilter, allGear))
+        var filtered = activities.Where(a =>
+                (string.Equals(activityType, "All Types", StringComparison.OrdinalIgnoreCase)
+                 || MatchesActivityType(a, activityType))
+                && MatchesGearFilter(a, gearFilter, allGear))
             .ToList();
 
         if (filtered.Count == 0)
@@ -128,15 +129,15 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         AnsiConsole.MarkupLine("[bold yellow]Step 3:[/] Choose New Gear");
         AnsiConsole.WriteLine();
 
-        List<string> gearChoices = ["[Remove gear]", .. allGear.Select(g => $"{g.Name} ({g.FormattedDistance})")];
+        const string removeGearChoice = "[Remove gear]";
+        List<string> gearChoices = [removeGearChoice, .. allGear.Select(g => $"{g.Name} ({g.FormattedDistance})")];
 
         var selectedGearName = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Select [green]gear to assign[/]:")
                 .AddChoices(gearChoices));
 
-        var targetGear = selectedGearName == "[Remove gear]"
-            ? null
+        var targetGear = string.Equals(selectedGearName, removeGearChoice, StringComparison.OrdinalIgnoreCase) ? null
             : allGear.FirstOrDefault(g => selectedGearName.StartsWith(g.Name));
 
         // Step 6: Confirm
@@ -249,7 +250,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         {
             var gearName = activity.GearId is null
                 ? "[grey]None[/]"
-                : allGear.FirstOrDefault(g => g.Id == activity.GearId)?.Name ?? "[grey]Unknown[/]";
+                : allGear.FirstOrDefault(g => string.Equals(g.Id, activity.GearId, StringComparison.OrdinalIgnoreCase))?.Name ?? "[grey]Unknown[/]";
 
             table.AddRow(
                 activity.StartDateLocal.ToString("MMM dd"),
@@ -286,8 +287,8 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         {
             "Run" => activity.Type is "Run" or "TrailRun" or "VirtualRun",
             "Ride" => activity.Type is "Ride" or "MountainBikeRide" or "GravelRide" or "EBikeRide" or "VirtualRide",
-            "Walk" => activity.Type == "Walk",
-            "Hike" => activity.Type == "Hike",
+            "Walk" => activity.Type is "Walk",
+            "Hike" => activity.Type is "Hike",
             "Swim" => activity.Type is "Swim" or "OpenWaterSwim",
             "Other" => activity.Type is not ("Run" or "TrailRun" or "VirtualRun" or "Ride" or "MountainBikeRide" or "GravelRide" or "EBikeRide" or "VirtualRide" or "Walk" or "Hike" or "Swim" or "OpenWaterSwim"),
             _ => true
@@ -296,18 +297,18 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
     private static bool MatchesGearFilter(StravaActivity activity, string filter, List<StravaGear> allGear)
     {
-        if (filter == "All activities")
+        if (string.Equals(filter, "All activities", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
-        if (filter == "No gear assigned")
+        if (string.Equals(filter, "No gear assigned", StringComparison.OrdinalIgnoreCase))
         {
             return string.IsNullOrEmpty(activity.GearId);
         }
 
-        var gear = allGear.FirstOrDefault(g => g.Name == filter);
-        return gear != null && activity.GearId == gear.Id;
+        var gear = allGear.FirstOrDefault(g => string.Equals(g.Name, filter, StringComparison.OrdinalIgnoreCase));
+        return gear != null && string.Equals(activity.GearId, gear.Id, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void WaitForKey()
