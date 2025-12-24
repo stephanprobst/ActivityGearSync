@@ -11,7 +11,7 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
     private const string AuthorizeUrl = "https://www.strava.com/oauth/authorize";
     private const string TokenUrl = "https://www.strava.com/oauth/token";
     private const string RedirectUri = "http://localhost:5678/callback";
-    private const string Scopes = "read,activity:read_all,activity:write";
+    private const string Scopes = "read,profile:read_all,activity:read_all,activity:write";
 
     private StravaTokens? _cachedTokens;
 
