@@ -409,8 +409,8 @@ dotnet_diagnostic.S6562.severity = suggestion
 # AsyncFixer
 ###############################
 
-# AsyncFixer01: Unnecessary async/await - Can be intentional for debugging
-dotnet_diagnostic.AsyncFixer01.severity = suggestion
+# AsyncFixer01: Unnecessary async/await - Can be intentional for debugging / add to stacktrace in case of exception
+dotnet_diagnostic.AsyncFixer01.severity = none
 
 ###############################
 # Roslynator
