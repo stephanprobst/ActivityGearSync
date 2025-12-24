@@ -8,6 +8,61 @@ namespace Strava.Console.Commands;
 
 public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
 {
+    // Activity type filter options
+    private static class ActivityTypes
+    {
+        public const string AllTypes = "All Types";
+        public const string Run = "Run";
+        public const string Ride = "Ride";
+        public const string Walk = "Walk";
+        public const string Hike = "Hike";
+        public const string Swim = "Swim";
+        public const string Other = "Other";
+
+        public static readonly string[] All = [AllTypes, Run, Ride, Walk, Hike, Swim, Other];
+    }
+
+    // Date range filter options
+    private static class DateRanges
+    {
+        public const string Last7Days = "Last 7 days";
+        public const string Last30Days = "Last 30 days";
+        public const string Last90Days = "Last 90 days";
+        public const string ThisYear = "This year";
+        public const string AllTime = "All time";
+
+        public static readonly string[] All = [Last7Days, Last30Days, Last90Days, ThisYear, AllTime];
+
+        public const int Days7 = 7;
+        public const int Days30 = 30;
+        public const int Days90 = 90;
+    }
+
+    // Gear filter options
+    private static class GearFilters
+    {
+        public const string AllActivities = "All activities";
+        public const string NoGearAssigned = "No gear assigned";
+        public const string RemoveGear = "[Remove gear]";
+    }
+
+    // UI and display constants
+    private static class DisplayLimits
+    {
+        public const int SelectionPageSize = 15;
+        public const int ActivitiesTablePreviewCount = 10;
+        public const int FailedActivitiesPreviewCount = 5;
+        public const int ActivityNameMaxLength = 25;
+        public const int ActivityNameTruncatedLength = 22;
+    }
+
+    // Rate limiting constants
+    private static class RateLimitThresholds
+    {
+        public const int LowRemainingWarning = 10;
+        public const int MaxRequestsPer15Min = 100;
+    }
+
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         AnsiConsole.Clear();
@@ -46,17 +101,17 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         string activityType = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]activity type[/]:")
-                .AddChoices("All Types", "Run", "Ride", "Walk", "Hike", "Swim", "Other"), cancellationToken);
+                .AddChoices(ActivityTypes.All), cancellationToken);
 
         string dateRange = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]date range[/]:")
-                .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"), cancellationToken);
+                .AddChoices(DateRanges.All), cancellationToken);
 
         string gearFilter = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Filter by [green]current gear[/]:")
-                .AddChoices(["All activities", "No gear assigned", .. allGear.Select(g => g.Name)]), cancellationToken);
+                .AddChoices([GearFilters.AllActivities, GearFilters.NoGearAssigned, .. allGear.Select(g => g.Name)]), cancellationToken);
 
         // Calculate date filter
         var (after, before) = CalculateDateRange(dateRange);
@@ -90,7 +145,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
         // Apply filters
         var filtered = activities.Where(a =>
-                (string.Equals(activityType, "All Types", StringComparison.OrdinalIgnoreCase)
+                (string.Equals(activityType, ActivityTypes.AllTypes, StringComparison.OrdinalIgnoreCase)
                  || MatchesActivityType(a, activityType))
                 && MatchesGearFilter(a, gearFilter, allGear))
             .ToList();
@@ -112,7 +167,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         var selectedActivities = await AnsiConsole.PromptAsync(
             new MultiSelectionPrompt<StravaActivity>()
                 .Title("Select activities to update:")
-                .PageSize(15)
+                .PageSize(DisplayLimits.SelectionPageSize)
                 .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
                 .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {a.Name} ({a.FormattedDistance})")
@@ -130,15 +185,14 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         AnsiConsole.MarkupLine("[bold yellow]Step 3:[/] Choose New Gear");
         AnsiConsole.WriteLine();
 
-        const string removeGearChoice = "[Remove gear]";
-        List<string> gearChoices = [removeGearChoice, .. allGear.Select(g => $"{g.Name} ({g.FormattedDistance})")];
+        List<string> gearChoices = [GearFilters.RemoveGear, .. allGear.Select(g => $"{g.Name} ({g.FormattedDistance})")];
 
         string selectedGearName = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]gear to assign[/]:")
                 .AddChoices(gearChoices), cancellationToken);
 
-        var targetGear = string.Equals(selectedGearName, removeGearChoice, StringComparison.OrdinalIgnoreCase) ? null
+        var targetGear = string.Equals(selectedGearName, GearFilters.RemoveGear, StringComparison.OrdinalIgnoreCase) ? null
             : allGear.FirstOrDefault(g => selectedGearName.StartsWith(g.Name, StringComparison.OrdinalIgnoreCase));
 
         // Step 6: Confirm
@@ -153,7 +207,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
         confirmTable.AddRow("Activities to update", $"[bold]{selectedActivities.Count}[/]");
         confirmTable.AddRow("New gear", targetGear?.Name ?? "[grey]None (remove gear)[/]");
-        confirmTable.AddRow("Rate limit remaining", $"{rateLimiter.RemainingRequests}/100");
+        confirmTable.AddRow("Rate limit remaining", $"{rateLimiter.RemainingRequests}/{RateLimitThresholds.MaxRequestsPer15Min}");
 
         AnsiConsole.Write(confirmTable);
         AnsiConsole.WriteLine();
@@ -203,9 +257,9 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                     task.Increment(1);
 
                     int remaining = rateLimiter.RemainingRequests;
-                    if (remaining < 10)
+                    if (remaining < RateLimitThresholds.LowRemainingWarning)
                     {
-                        task.Description = $"[yellow]Rate limit low ({remaining}/100). Slowing down...[/]";
+                        task.Description = $"[yellow]Rate limit low ({remaining}/{RateLimitThresholds.MaxRequestsPer15Min}). Slowing down...[/]";
                     }
                 }
             });
@@ -223,14 +277,14 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         if (failedActivities.Count > 0)
         {
             AnsiConsole.MarkupLine($"[red]Failed to update {failedActivities.Count} activities:[/]");
-            foreach ((var activity, string error) in failedActivities.Take(5))
+            foreach ((var activity, string error) in failedActivities.Take(DisplayLimits.FailedActivitiesPreviewCount))
             {
                 AnsiConsole.MarkupLine($"  [grey]- {activity.Name}: {error}[/]");
             }
 
-            if (failedActivities.Count > 5)
+            if (failedActivities.Count > DisplayLimits.FailedActivitiesPreviewCount)
             {
-                AnsiConsole.MarkupLine($"  [grey]... and {failedActivities.Count - 5} more[/]");
+                AnsiConsole.MarkupLine($"  [grey]... and {failedActivities.Count - DisplayLimits.FailedActivitiesPreviewCount} more[/]");
             }
         }
 
@@ -247,23 +301,27 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
             .AddColumn("Distance")
             .AddColumn("Current Gear");
 
-        foreach (var activity in activities.Take(10))
+        foreach (var activity in activities.Take(DisplayLimits.ActivitiesTablePreviewCount))
         {
             string gearName = activity.GearId is null
                 ? "[grey]None[/]"
                 : allGear.FirstOrDefault(g => string.Equals(g.Id, activity.GearId, StringComparison.OrdinalIgnoreCase))?.Name ?? "[grey]Unknown[/]";
 
+            string truncatedName = activity.Name.Length > DisplayLimits.ActivityNameMaxLength
+                ? activity.Name[..DisplayLimits.ActivityNameTruncatedLength] + "..."
+                : activity.Name;
+
             table.AddRow(
                 activity.StartDateLocal.ToString("MMM dd", CultureInfo.InvariantCulture),
-                activity.Name.Length > 25 ? activity.Name[..22] + "..." : activity.Name,
+                truncatedName,
                 activity.Type,
                 activity.FormattedDistance,
                 gearName);
         }
 
-        if (activities.Count > 10)
+        if (activities.Count > DisplayLimits.ActivitiesTablePreviewCount)
         {
-            table.AddRow("[grey]...[/]", $"[grey]and {activities.Count - 10} more[/]", "", "", "");
+            table.AddRow("[grey]...[/]", $"[grey]and {activities.Count - DisplayLimits.ActivitiesTablePreviewCount} more[/]", "", "", "");
         }
 
         AnsiConsole.Write(table);
@@ -274,10 +332,10 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         var now = DateTime.Now;
         return dateRange switch
         {
-            "Last 7 days" => (now.AddDays(-7), null),
-            "Last 30 days" => (now.AddDays(-30), null),
-            "Last 90 days" => (now.AddDays(-90), null),
-            "This year" => (new DateTime(now.Year, 1, 1), null),
+            DateRanges.Last7Days => (now.AddDays(-DateRanges.Days7), null),
+            DateRanges.Last30Days => (now.AddDays(-DateRanges.Days30), null),
+            DateRanges.Last90Days => (now.AddDays(-DateRanges.Days90), null),
+            DateRanges.ThisYear => (new DateTime(now.Year, 1, 1), null),
             _ => (null, null)
         };
     }
@@ -286,24 +344,24 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
     {
         return filter switch
         {
-            "Run" => activity.Type is "Run" or "TrailRun" or "VirtualRun",
-            "Ride" => activity.Type is "Ride" or "MountainBikeRide" or "GravelRide" or "EBikeRide" or "VirtualRide",
-            "Walk" => activity.Type is "Walk",
-            "Hike" => activity.Type is "Hike",
-            "Swim" => activity.Type is "Swim" or "OpenWaterSwim",
-            "Other" => activity.Type is not ("Run" or "TrailRun" or "VirtualRun" or "Ride" or "MountainBikeRide" or "GravelRide" or "EBikeRide" or "VirtualRide" or "Walk" or "Hike" or "Swim" or "OpenWaterSwim"),
+            ActivityTypes.Run => activity.Type is "Run" or "TrailRun" or "VirtualRun",
+            ActivityTypes.Ride => activity.Type is "Ride" or "MountainBikeRide" or "GravelRide" or "EBikeRide" or "VirtualRide",
+            ActivityTypes.Walk => activity.Type is "Walk",
+            ActivityTypes.Hike => activity.Type is "Hike",
+            ActivityTypes.Swim => activity.Type is "Swim" or "OpenWaterSwim",
+            ActivityTypes.Other => activity.Type is not ("Run" or "TrailRun" or "VirtualRun" or "Ride" or "MountainBikeRide" or "GravelRide" or "EBikeRide" or "VirtualRide" or "Walk" or "Hike" or "Swim" or "OpenWaterSwim"),
             _ => true
         };
     }
 
     private static bool MatchesGearFilter(StravaActivity activity, string filter, List<StravaGear> allGear)
     {
-        if (string.Equals(filter, "All activities", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(filter, GearFilters.AllActivities, StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
-        if (string.Equals(filter, "No gear assigned", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(filter, GearFilters.NoGearAssigned, StringComparison.OrdinalIgnoreCase))
         {
             return string.IsNullOrEmpty(activity.GearId);
         }
