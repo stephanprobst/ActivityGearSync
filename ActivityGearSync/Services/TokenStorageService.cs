@@ -1,14 +1,14 @@
 using System.Text.Json;
-using Strava.Console.Infrastructure;
-using Strava.Console.Models;
+using ActivityGearSync.Infrastructure;
+using ActivityGearSync.Models;
 
-namespace Strava.Console.Services;
+namespace ActivityGearSync.Services;
 
 public sealed class TokenStorageService
 {
     private readonly string _storagePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "StravaConsole"
+        "ActivityGearSync"
     );
 
     private readonly string _tokensFilePath;

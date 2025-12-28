@@ -1,7 +1,7 @@
 using Spectre.Console;
-using Strava.Console.Services;
+using ActivityGearSync.Services;
 
-namespace Strava.Console.Commands;
+namespace ActivityGearSync.Commands;
 
 public sealed class AuthenticateCommand(StravaAuthClient authClient)
 {

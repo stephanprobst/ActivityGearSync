@@ -1,6 +1,36 @@
+# Build results
 bin/
 obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
-.idea
+out/
+
+# NuGet
+packages/
+*.nupkg
+
+# IDE - Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE - JetBrains Rider
+.idea/
+*.sln.iml
+_ReSharper.Caches/
+
+# IDE - VS Code
+.vscode/
+
+# User-specific files
+*.DotSettings.user
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test results
+TestResults/

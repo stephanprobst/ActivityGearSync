@@ -1,9 +1,9 @@
 using Spectre.Console;
-using Strava.Console.Infrastructure;
-using Strava.Console.Models;
-using Strava.Console.Services;
+using ActivityGearSync.Infrastructure;
+using ActivityGearSync.Models;
+using ActivityGearSync.Services;
 
-namespace Strava.Console.Commands;
+namespace ActivityGearSync.Commands;
 
 public sealed class SetupCommand(TokenStorageService tokenStorage)
 {

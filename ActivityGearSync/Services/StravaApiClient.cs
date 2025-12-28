@@ -1,9 +1,9 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Strava.Console.Infrastructure;
-using Strava.Console.Models;
+using ActivityGearSync.Infrastructure;
+using ActivityGearSync.Models;
 
-namespace Strava.Console.Services;
+namespace ActivityGearSync.Services;
 
 public sealed class StravaApiClient(
     HttpClient httpClient,

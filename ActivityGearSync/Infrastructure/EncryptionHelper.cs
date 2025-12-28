@@ -1,13 +1,13 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Strava.Console.Infrastructure;
+namespace ActivityGearSync.Infrastructure;
 
 public static class EncryptionHelper
 {
     private static readonly string KeyFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "StravaConsole",
+        "ActivityGearSync",
         ".key"
     );
 

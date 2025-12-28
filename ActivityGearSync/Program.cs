@@ -1,10 +1,10 @@
 using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
-using Strava.Console.Commands;
-using Strava.Console.Infrastructure;
-using Strava.Console.Models;
-using Strava.Console.Services;
+using ActivityGearSync.Commands;
+using ActivityGearSync.Infrastructure;
+using ActivityGearSync.Models;
+using ActivityGearSync.Services;
 
 // Setup DI
 var services = new ServiceCollection();
@@ -50,7 +50,7 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
     if (!tokenStorage.HasCredentials())
     {
         DisplayHeader();
-        AnsiConsole.MarkupLine("[yellow]Welcome! It looks like this is your first time using Strava Activity Editor.[/]");
+        AnsiConsole.MarkupLine("[yellow]Welcome! It looks like this is your first time using Activity Gear Sync.[/]");
         AnsiConsole.WriteLine();
 
         var setupCommand = serviceProvider.GetRequiredService<SetupCommand>();
@@ -181,7 +181,7 @@ static void DisplayHeader()
 {
     AnsiConsole.Clear();
 
-    var rule = new Rule("[orange1]Strava Activity Editor[/]")
+    var rule = new Rule("[orange1]Activity Gear Sync[/]")
     {
         Justification = Justify.Center,
         Style = Style.Parse("orange1")

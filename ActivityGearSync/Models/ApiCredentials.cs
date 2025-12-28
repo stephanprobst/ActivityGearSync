@@ -1,4 +1,4 @@
-namespace Strava.Console.Models;
+namespace ActivityGearSync.Models;
 
 public sealed class ApiCredentials
 {

@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
-using Strava.Console.Models;
+using ActivityGearSync.Models;
 
-namespace Strava.Console.Services;
+namespace ActivityGearSync.Services;
 
 public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService tokenStorage)
 {

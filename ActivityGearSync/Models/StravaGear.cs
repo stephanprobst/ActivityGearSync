@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Strava.Console.Models;
+namespace ActivityGearSync.Models;
 
 public sealed class StravaGear
 {

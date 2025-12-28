@@ -1,4 +1,4 @@
-namespace Strava.Console.Infrastructure;
+namespace ActivityGearSync.Infrastructure;
 
 public static class IconGenerator
 {
