@@ -97,7 +97,7 @@ static async Task RunApplicationAsync(ServiceProvider serviceProvider)
         }
         catch (Exception ex)
         {
-            AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+            AnsiConsole.MarkupLine($"[red]Error: {Markup.Escape(ex.Message)}[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
             Console.ReadKey(intercept: true);
         }
