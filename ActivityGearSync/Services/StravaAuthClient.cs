@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
+using ActivityGearSync.Infrastructure;
 using ActivityGearSync.Models;
 
 namespace ActivityGearSync.Services;
@@ -76,7 +77,7 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
         var response = await httpClient.PostAsync(TokenUrl, content);
         response.EnsureSuccessStatusCode();
 
-        var tokens = await response.Content.ReadFromJsonAsync<StravaTokens>()
+        var tokens = await response.Content.ReadFromJsonAsync(AppJsonContext.Default.StravaTokens)
             ?? throw new InvalidOperationException("Failed to deserialize token response.");
 
         return tokens;
@@ -152,7 +153,7 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
         var response = await httpClient.PostAsync(TokenUrl, content);
         response.EnsureSuccessStatusCode();
 
-        var tokens = await response.Content.ReadFromJsonAsync<StravaTokens>()
+        var tokens = await response.Content.ReadFromJsonAsync(AppJsonContext.Default.StravaTokens)
             ?? throw new InvalidOperationException("Failed to deserialize token response.");
 
         return tokens;

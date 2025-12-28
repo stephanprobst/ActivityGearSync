@@ -14,11 +14,6 @@ public sealed class TokenStorageService
     private readonly string _tokensFilePath;
     private readonly string _credentialsFilePath;
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true
-    };
-
     public TokenStorageService()
     {
         _tokensFilePath = Path.Combine(_storagePath, "tokens.json");
@@ -40,7 +35,7 @@ public sealed class TokenStorageService
         {
             string encryptedJson = await File.ReadAllTextAsync(_tokensFilePath);
             string json = EncryptionHelper.Decrypt(encryptedJson);
-            return JsonSerializer.Deserialize<StravaTokens>(json);
+            return JsonSerializer.Deserialize(json, AppJsonContext.Default.StravaTokens);
         }
         catch
         {
@@ -51,7 +46,7 @@ public sealed class TokenStorageService
     public async Task SaveTokensAsync(StravaTokens tokens)
     {
         EnsureDirectoryExists();
-        string json = JsonSerializer.Serialize(tokens, JsonOptions);
+        string json = JsonSerializer.Serialize(tokens, AppJsonContext.Default.StravaTokens);
         string encryptedJson = EncryptionHelper.Encrypt(json);
         await File.WriteAllTextAsync(_tokensFilePath, encryptedJson);
     }
@@ -77,7 +72,7 @@ public sealed class TokenStorageService
         {
             string encryptedJson = await File.ReadAllTextAsync(_credentialsFilePath);
             string json = EncryptionHelper.Decrypt(encryptedJson);
-            return JsonSerializer.Deserialize<ApiCredentials>(json);
+            return JsonSerializer.Deserialize(json, AppJsonContext.Default.ApiCredentials);
         }
         catch
         {
@@ -88,7 +83,7 @@ public sealed class TokenStorageService
     public async Task SaveCredentialsAsync(ApiCredentials credentials)
     {
         EnsureDirectoryExists();
-        string json = JsonSerializer.Serialize(credentials, JsonOptions);
+        string json = JsonSerializer.Serialize(credentials, AppJsonContext.Default.ApiCredentials);
         string encryptedJson = EncryptionHelper.Encrypt(json);
         await File.WriteAllTextAsync(_credentialsFilePath, encryptedJson);
     }

@@ -18,7 +18,7 @@ public sealed class StravaApiClient(
         var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, "/athlete");
         var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<StravaAthlete>(cancellationToken: cancellationToken)
+        return await response.Content.ReadFromJsonAsync(AppJsonContext.Default.StravaAthlete, cancellationToken)
             ?? throw new InvalidOperationException("Failed to deserialize athlete response.");
     }
 
@@ -46,7 +46,7 @@ public sealed class StravaApiClient(
         var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<List<StravaActivity>>(cancellationToken: cancellationToken)
+        return await response.Content.ReadFromJsonAsync(AppJsonContext.Default.ListStravaActivity, cancellationToken)
             ?? [];
     }
 
@@ -91,12 +91,13 @@ public sealed class StravaApiClient(
         await rateLimiter.WaitIfNeededAsync(cancellationToken);
 
         var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"/activities/{activityId}");
-        request.Content = JsonContent.Create(new { gear_id = gearId ?? "none" });
+        var gearUpdate = new GearUpdateRequest { GearId = gearId ?? "none" };
+        request.Content = JsonContent.Create(gearUpdate, AppJsonContext.Default.GearUpdateRequest);
 
         var response = await httpClient.SendAsync(request, cancellationToken);
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadFromJsonAsync<StravaActivity>(cancellationToken: cancellationToken)
+        return await response.Content.ReadFromJsonAsync(AppJsonContext.Default.StravaActivity, cancellationToken)
             ?? throw new InvalidOperationException("Failed to deserialize activity response.");
     }
 
