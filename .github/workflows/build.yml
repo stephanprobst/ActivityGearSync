@@ -24,3 +24,38 @@ jobs:
 
       - name: Build
         run: dotnet build ActivityGearSync/ActivityGearSync.csproj --configuration Release --no-restore
+
+  publish:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            artifact: ActivityGearSync-win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+            artifact: ActivityGearSync-linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+            artifact: ActivityGearSync-osx-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish AOT
+        run: dotnet publish ActivityGearSync/ActivityGearSync.csproj -c Release -r ${{ matrix.rid }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/
+          if-no-files-found: error
