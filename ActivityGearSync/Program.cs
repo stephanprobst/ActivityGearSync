@@ -181,7 +181,7 @@ static void DisplayHeader()
 {
     AnsiConsole.Clear();
 
-    var rule = new Rule("[orange1]Activity Gear Sync[/]")
+    var rule = new Rule($"[orange1]Activity Gear Sync[/] [grey]v{ThisAssembly.AssemblyInformationalVersion}[/]")
     {
         Justification = Justify.Center,
         Style = Style.Parse("orange1")
