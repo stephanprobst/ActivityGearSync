@@ -13,11 +13,11 @@
 
   <!-- Build-time only dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.7.115" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.182" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.4.0.108396" />
-    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.10" />
-    <PackageVersion Include="AsyncFixer" Version="1.6.0" />
+    <PackageVersion Include="Nerdbank.GitVersioning" Version="3.9.50" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.266" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.17.0.131074" />
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
+    <PackageVersion Include="AsyncFixer" Version="2.1.0" />
   </ItemGroup>
 
 </Project>
