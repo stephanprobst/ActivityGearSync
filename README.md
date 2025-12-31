@@ -10,39 +10,40 @@ A cross-platform .NET console application for bulk editing gear assignments on y
 - Secure local storage of API credentials (AES encrypted)
 - Rate limiting to respect API quotas
 
-## Requirements to build the project
+## Installation
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) or later
-- A Strava account
-- Your own Strava API application credentials
+### Download and Run
 
-## Getting Started
+1. Go to [GitHub Releases](https://github.com/stephanprobst/ActivityGearSync/releases)
+2. Download the file for your platform:
+   - **Windows**: `ActivityGearSync-win-x64-x.x.x.exe`
+   - **Linux**: `ActivityGearSync-linux-x64-x.x.x`
+   - **macOS**: `ActivityGearSync-osx-arm64-x.x.x`
+3. Run the application
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/stephanprobst/ActivityGearSync.git
-cd ActivityGearSync
-```
-
-### 2. Build and run
-
-```bash
-cd ActivityGearSync
-dotnet run
-```
-
-### 3. First-time setup
+### First-Time Setup
 
 On first run, the application will guide you through:
 
 1. Creating a Strava API application at https://www.strava.com/settings/api
 2. Uploading an application icon (auto-generated for you)
 3. Entering your Client ID and Client Secret
+4. Authenticating with your Strava account
 
-### 4. Authenticate
+## Building from Source
 
-After setup, authenticate with your account to grant the application access to your activities and gear.
+### Prerequisites
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+
+### Build and Run
+
+```bash
+git clone https://github.com/stephanprobst/ActivityGearSync.git
+cd ActivityGearSync/ActivityGearSync
+dotnet build
+dotnet run
+```
 
 ## Usage
 
