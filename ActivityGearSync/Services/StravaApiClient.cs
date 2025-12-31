@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -7,22 +6,12 @@ using ActivityGearSync.Models;
 
 namespace ActivityGearSync.Services;
 
-public sealed class StravaApiClient(
-    HttpClient httpClient,
-    StravaAuthClient authClient,
-    RateLimiter rateLimiter)
+public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient authClient)
 {
     private const string BaseUrl = "https://www.strava.com/api/v3";
 
-    private static class RetryPolicy
-    {
-        public const int MaxRetries = 3;
-        public static readonly TimeSpan DefaultRetryDelay = TimeSpan.FromMinutes(1);
-    }
-
     public async Task<StravaAthlete> GetAthleteAsync(CancellationToken cancellationToken = default)
     {
-        await rateLimiter.WaitIfNeededAsync(cancellationToken);
         var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, "/athlete");
         return await SendAndProcessAsync(request, AppJsonContext.Default.StravaAthlete, cancellationToken);
     }
@@ -34,8 +23,6 @@ public sealed class StravaApiClient(
         DateTime? before = null,
         CancellationToken cancellationToken = default)
     {
-        await rateLimiter.WaitIfNeededAsync(cancellationToken);
-
         string url = $"/athlete/activities?page={page}&per_page={perPage}";
         if (after.HasValue)
         {
@@ -90,8 +77,6 @@ public sealed class StravaApiClient(
         string? gearId,
         CancellationToken cancellationToken = default)
     {
-        await rateLimiter.WaitIfNeededAsync(cancellationToken);
-
         var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"/activities/{activityId}");
         var gearUpdate = new GearUpdateRequest { GearId = gearId ?? "none" };
         request.Content = JsonContent.Create(gearUpdate, AppJsonContext.Default.GearUpdateRequest);
@@ -104,60 +89,13 @@ public sealed class StravaApiClient(
         JsonTypeInfo<T> jsonTypeInfo,
         CancellationToken cancellationToken)
     {
-        int attempt = 0;
+        // Polly handles retries via HttpClient pipeline
+        // RateLimitHandler handles rate limit tracking
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
 
-        while (attempt <= RetryPolicy.MaxRetries)
-        {
-            try
-            {
-                // Clone request if retrying (HttpRequestMessage can only be sent once)
-                var requestToSend = attempt == 0 ? request : await CloneRequestAsync(request);
-                var response = await httpClient.SendAsync(requestToSend, cancellationToken);
-
-                // Parse rate limit headers from every response
-                var rateLimitInfo = RateLimitHeaderParser.Parse(response.Headers);
-                if (rateLimitInfo is not null)
-                {
-                    rateLimiter.UpdateFromServer(rateLimitInfo);
-                }
-
-                // Handle 429 Too Many Requests
-                if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                {
-                    attempt++;
-
-                    if (attempt > RetryPolicy.MaxRetries)
-                    {
-                        var retryAfter = RateLimitHeaderParser.ParseRetryAfter(response.Headers);
-                        throw new RateLimitExceededException(
-                            "Rate limit exceeded after maximum retries",
-                            rateLimitInfo,
-                            retryAfter);
-                    }
-
-                    // Wait before retry
-                    var delay = RateLimitHeaderParser.ParseRetryAfter(response.Headers)
-                        ?? RetryPolicy.DefaultRetryDelay;
-
-                    await Task.Delay(delay, cancellationToken);
-                    continue;
-                }
-
-                // Throw for other errors
-                response.EnsureSuccessStatusCode();
-
-                // Deserialize response
-                return await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken)
-                    ?? throw new InvalidOperationException("Failed to deserialize response.");
-            }
-            catch (HttpRequestException) when (attempt < RetryPolicy.MaxRetries)
-            {
-                attempt++;
-                await Task.Delay(TimeSpan.FromSeconds(attempt * 2), cancellationToken);
-            }
-        }
-
-        throw new InvalidOperationException("Request failed after maximum retries.");
+        return await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken)
+            ?? throw new InvalidOperationException("Failed to deserialize response.");
     }
 
     private async Task<HttpRequestMessage> CreateAuthorizedRequestAsync(HttpMethod method, string endpoint)
@@ -168,30 +106,5 @@ public sealed class StravaApiClient(
         var request = new HttpRequestMessage(method, $"{BaseUrl}{endpoint}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
         return request;
-    }
-
-    private async Task<HttpRequestMessage> CloneRequestAsync(HttpRequestMessage original)
-    {
-        var clone = new HttpRequestMessage(original.Method, original.RequestUri);
-
-        // Copy headers
-        foreach (var header in original.Headers)
-        {
-            clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
-        }
-
-        // Copy content if present
-        if (original.Content is not null)
-        {
-            string content = await original.Content.ReadAsStringAsync();
-            clone.Content = new StringContent(content, System.Text.Encoding.UTF8, "application/json");
-        }
-
-        // Re-authorize the request
-        var tokens = await authClient.GetValidTokensAsync()
-            ?? throw new InvalidOperationException("Not authenticated. Please authenticate first.");
-        clone.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
-
-        return clone;
     }
 }
