@@ -1,5 +1,3 @@
-using ActivityGearSync.Models;
-
 namespace ActivityGearSync.Infrastructure;
 
 public sealed class RateLimitHandler(RateLimiter rateLimiter) : DelegatingHandler

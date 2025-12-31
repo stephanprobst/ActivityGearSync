@@ -5,6 +5,7 @@ A cross-platform .NET console application for bulk editing gear assignments on y
 ## Features
 
 - Bulk update gear assignments on multiple activities at once
+- Bulk update activity types (e.g., change Ride to GravelRide)
 - Filter activities by type, date range, and current gear
 - View your activities and gear
 - Secure local storage of API credentials (AES encrypted)
@@ -50,6 +51,7 @@ dotnet run
 The main menu provides the following options:
 
 - **Update Gear on Activities** - Bulk assign or remove gear from multiple activities
+- **Update Activity Type** - Bulk change sport types within the same category
 - **View My Activities** - Browse your recent activities
 - **View My Gear** - See your configured bikes and shoes
 

@@ -66,6 +66,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<SetupCommand>();
     services.AddTransient<AuthenticateCommand>();
     services.AddTransient<UpdateGearCommand>();
+    services.AddTransient<UpdateSportTypeCommand>();
 }
 
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
@@ -147,6 +148,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
     if (isAuthenticated)
     {
         choices.Add(new MenuItem(MenuChoice.UpdateGear, "Update Gear on Activities"));
+        choices.Add(new MenuItem(MenuChoice.UpdateSportType, "Update Activity Type"));
         choices.Add(new MenuItem(MenuChoice.ViewActivities, "View My Activities"));
         choices.Add(new MenuItem(MenuChoice.ViewGear, "View My Gear"));
     }
@@ -180,6 +182,11 @@ static async Task ExecuteMenuChoiceAsync(
         case MenuChoice.UpdateGear:
             var updateGearCommand = serviceProvider.GetRequiredService<UpdateGearCommand>();
             await updateGearCommand.ExecuteAsync(cancellationToken);
+            break;
+
+        case MenuChoice.UpdateSportType:
+            var updateSportTypeCommand = serviceProvider.GetRequiredService<UpdateSportTypeCommand>();
+            await updateSportTypeCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.ViewActivities:
@@ -261,13 +268,12 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
             var task = ctx.AddTask("[green]Fetching activities...[/]");
             task.IsIndeterminate = true;
 
-            activities = (await apiService.GetAllActivitiesAsync(
+            activities = [.. await apiService.GetAllActivitiesAsync(
                 new Progress<(int fetched, int total)>(p =>
                 {
                     task.Description = $"[green]Fetched {p.fetched} activities...[/]";
                 }),
-                after, before: null, cancellationToken))
-                .ToList();
+                after, before: null, cancellationToken)];
 
             task.IsIndeterminate = false;
             task.Value = 100;
@@ -437,6 +443,7 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
 internal enum MenuChoice
 {
     UpdateGear,
+    UpdateSportType,
     ViewActivities,
     ViewGear,
     Authenticate,

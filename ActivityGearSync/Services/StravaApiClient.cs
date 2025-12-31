@@ -84,6 +84,18 @@ public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient auth
         return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
     }
 
+    public async Task<StravaActivity> UpdateActivitySportTypeAsync(
+        long activityId,
+        string sportType,
+        CancellationToken cancellationToken = default)
+    {
+        var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"/activities/{activityId}");
+        var sportTypeUpdate = new SportTypeUpdateRequest { SportType = sportType };
+        request.Content = JsonContent.Create(sportTypeUpdate, AppJsonContext.Default.SportTypeUpdateRequest);
+
+        return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
+    }
+
     private async Task<T> SendAndProcessAsync<T>(
         HttpRequestMessage request,
         JsonTypeInfo<T> jsonTypeInfo,
