@@ -263,7 +263,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                 new TaskDescriptionColumn(),
                 new ProgressBarColumn(),
                 new PercentageColumn(),
-                new RemainingTimeColumn(),
+                new ElapsedTimeColumn(),
                 new SpinnerColumn())
             .StartAsync(async ctx =>
             {
@@ -292,7 +292,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                     int remaining = rateLimiter.RemainingRequests;
                     if (remaining < RateLimitThresholds.LowRemainingWarning)
                     {
-                        task.Description = $"[yellow]Rate limit low ({remaining}/{RateLimitThresholds.MaxRequestsPer15Min}). Slowing down...[/]";
+                        task.Description = $"[yellow]Rate limit low ({remaining}/{RateLimitThresholds.MaxRequestsPer15Min}). Waiting to avoid limit, please let it run...[/]";
                     }
                 }
             });
