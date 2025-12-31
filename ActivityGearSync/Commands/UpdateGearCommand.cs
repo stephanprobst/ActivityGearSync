@@ -67,8 +67,10 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
     // Rate limiting constants
     private static class RateLimitThresholds
     {
-        public const int LowRemainingWarning = 10;
+        public const int LowShortTermWarning = 10;
+        public const int LowDailyWarning = 100;
         public const int MaxRequestsPer15Min = 100;
+        public const int MaxRequestsPerDay = 1000;
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -238,9 +240,12 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
             .AddColumn("Setting")
             .AddColumn("Value");
 
+        var (shortTermRemaining, dailyRemaining) = rateLimiter.GetRemainingRequests();
+
         confirmTable.AddRow("Activities to update", $"[bold]{selectedActivities.Count}[/]");
         confirmTable.AddRow("New gear", targetGear?.Name ?? "[grey]None (remove gear)[/]");
-        confirmTable.AddRow("Rate limit remaining", $"{rateLimiter.RemainingRequests}/{RateLimitThresholds.MaxRequestsPer15Min}");
+        confirmTable.AddRow("Rate limit (15-min)", $"{shortTermRemaining}/{RateLimitThresholds.MaxRequestsPer15Min}");
+        confirmTable.AddRow("Rate limit (daily)", $"{dailyRemaining}/{RateLimitThresholds.MaxRequestsPerDay}");
 
         AnsiConsole.Write(confirmTable);
         AnsiConsole.WriteLine();
@@ -277,6 +282,9 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                         break;
                     }
 
+                    // Update progress description with rate limit info before the request
+                    UpdateProgressWithRateLimitInfo(task, selectedActivities.Count);
+
                     try
                     {
                         await apiClient.UpdateActivityGearAsync(activity.Id, targetGear?.Id, cancellationToken);
@@ -288,12 +296,6 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                     }
 
                     task.Increment(1);
-
-                    int remaining = rateLimiter.RemainingRequests;
-                    if (remaining < RateLimitThresholds.LowRemainingWarning)
-                    {
-                        task.Description = $"[yellow]Rate limit low ({remaining}/{RateLimitThresholds.MaxRequestsPer15Min}). Waiting to avoid limit, please let it run...[/]";
-                    }
                 }
             });
 
@@ -407,10 +409,50 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         return gear != null && string.Equals(activity.GearId, gear.Id, StringComparison.OrdinalIgnoreCase);
     }
 
+    private void UpdateProgressWithRateLimitInfo(ProgressTask task, int totalActivities)
+    {
+        var (shortTerm, daily) = rateLimiter.GetRemainingRequests();
+        var (waitTime, waitReason) = rateLimiter.GetEstimatedWaitTime();
+
+        // If we need to wait, show the wait time
+        if (waitTime.HasValue && waitReason is not null)
+        {
+            string waitTimeFormatted = FormatWaitTime(waitTime.Value);
+            task.Description = $"[yellow]Waiting {waitTimeFormatted} ({waitReason})[/] [grey]│[/] [dim]15m: {shortTerm}/{RateLimitThresholds.MaxRequestsPer15Min}, daily: {daily}/{RateLimitThresholds.MaxRequestsPerDay}[/]";
+        }
+        // If limits are low, show warning
+        else if (shortTerm < RateLimitThresholds.LowShortTermWarning || daily < RateLimitThresholds.LowDailyWarning)
+        {
+            string limitColor = shortTerm < RateLimitThresholds.LowShortTermWarning ? "yellow" : "green";
+            string dailyColor = daily < RateLimitThresholds.LowDailyWarning ? "yellow" : "green";
+            task.Description = $"[green]Updating {totalActivities} activities[/] [grey]│[/] [{limitColor}]15m: {shortTerm}/{RateLimitThresholds.MaxRequestsPer15Min}[/], [{dailyColor}]daily: {daily}/{RateLimitThresholds.MaxRequestsPerDay}[/]";
+        }
+        // Normal operation - show rate limit info
+        else
+        {
+            task.Description = $"[green]Updating {totalActivities} activities[/] [grey]│[/] [dim]15m: {shortTerm}/{RateLimitThresholds.MaxRequestsPer15Min}, daily: {daily}/{RateLimitThresholds.MaxRequestsPerDay}[/]";
+        }
+    }
+
+    private static string FormatWaitTime(TimeSpan waitTime)
+    {
+        if (waitTime.TotalHours >= 1)
+        {
+            return $"{waitTime.Hours}h {waitTime.Minutes}m";
+        }
+
+        if (waitTime.TotalMinutes >= 1)
+        {
+            return $"{waitTime.Minutes}m {waitTime.Seconds}s";
+        }
+
+        return $"{waitTime.Seconds}s";
+    }
+
     private static void WaitForKey()
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("Press any key to continue...");
-        System.Console.ReadKey(intercept: true);
+        Console.ReadKey(intercept: true);
     }
 }

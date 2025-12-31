@@ -1,5 +1,8 @@
 using System.Globalization;
+using System.Net;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using Spectre.Console;
 using ActivityGearSync.Commands;
 using ActivityGearSync.Infrastructure;
@@ -16,15 +19,48 @@ await RunApplicationAsync(serviceProvider);
 
 static void ConfigureServices(IServiceCollection services)
 {
-    services.AddHttpClient();
-
     // Infrastructure
     services.AddSingleton<RateLimiter>();
+    services.AddTransient<RateLimitHandler>();
+
+    // Configure HttpClient for Strava API with resilience
+    services.AddHttpClient<StravaApiClient>()
+        .AddHttpMessageHandler<RateLimitHandler>()
+        .AddResilienceHandler("StravaApi", builder =>
+        {
+            builder.AddRetry(new HttpRetryStrategyOptions
+            {
+                MaxRetryAttempts = 3,
+                BackoffType = DelayBackoffType.Exponential,
+                UseJitter = true,
+                Delay = TimeSpan.FromSeconds(2),
+                ShouldHandle = args => ValueTask.FromResult(
+                    args.Outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests ||
+                    args.Outcome.Result?.StatusCode >= HttpStatusCode.InternalServerError ||
+                    args.Outcome.Exception is HttpRequestException),
+                DelayGenerator = args =>
+                {
+                    // Use Retry-After header if available for 429 responses
+                    if (args.Outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests)
+                    {
+                        var retryAfter = RateLimitHeaderParser.ParseRetryAfter(args.Outcome.Result.Headers);
+                        if (retryAfter.HasValue)
+                        {
+                            return ValueTask.FromResult<TimeSpan?>(retryAfter.Value);
+                        }
+                    }
+
+                    return ValueTask.FromResult<TimeSpan?>(null); // Use default backoff
+                }
+            });
+        });
+
+    // Default HttpClient for other services
+    services.AddHttpClient();
 
     // Services
     services.AddSingleton<TokenStorageService>();
     services.AddSingleton<StravaAuthClient>();
-    services.AddSingleton<StravaApiClient>();
 
     // Commands
     services.AddTransient<SetupCommand>();
