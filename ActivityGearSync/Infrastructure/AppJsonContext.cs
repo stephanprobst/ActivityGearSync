@@ -1,4 +1,3 @@
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using ActivityGearSync.Models;
 
@@ -15,6 +14,7 @@ namespace ActivityGearSync.Infrastructure;
 [JsonSerializable(typeof(StravaGear))]
 [JsonSerializable(typeof(ApiCredentials))]
 [JsonSerializable(typeof(GearUpdateRequest))]
+[JsonSerializable(typeof(SportTypeUpdateRequest))]
 [JsonSerializable(typeof(List<StravaActivity>))]
 [JsonSerializable(typeof(List<StravaGear>))]
 public partial class AppJsonContext : JsonSerializerContext;
