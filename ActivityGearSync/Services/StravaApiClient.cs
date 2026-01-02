@@ -96,6 +96,17 @@ public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient auth
         return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
     }
 
+    public async Task<StravaActivity> UpdateActivityFlagsAsync(
+        long activityId,
+        ActivityFlagsUpdateRequest flags,
+        CancellationToken cancellationToken = default)
+    {
+        var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"/activities/{activityId}");
+        request.Content = JsonContent.Create(flags, AppJsonContext.Default.ActivityFlagsUpdateRequest);
+
+        return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
+    }
+
     private async Task<T> SendAndProcessAsync<T>(
         HttpRequestMessage request,
         JsonTypeInfo<T> jsonTypeInfo,

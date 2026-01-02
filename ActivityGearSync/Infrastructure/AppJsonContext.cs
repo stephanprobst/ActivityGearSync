@@ -15,6 +15,7 @@ namespace ActivityGearSync.Infrastructure;
 [JsonSerializable(typeof(ApiCredentials))]
 [JsonSerializable(typeof(GearUpdateRequest))]
 [JsonSerializable(typeof(SportTypeUpdateRequest))]
+[JsonSerializable(typeof(ActivityFlagsUpdateRequest))]
 [JsonSerializable(typeof(List<StravaActivity>))]
 [JsonSerializable(typeof(List<StravaGear>))]
 public partial class AppJsonContext : JsonSerializerContext;

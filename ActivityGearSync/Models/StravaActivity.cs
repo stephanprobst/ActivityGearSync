@@ -28,6 +28,15 @@ public sealed class StravaActivity
     [JsonPropertyName("gear_id")]
     public string? GearId { get; init; }
 
+    [JsonPropertyName("commute")]
+    public bool Commute { get; init; }
+
+    [JsonPropertyName("trainer")]
+    public bool Trainer { get; init; }
+
+    [JsonPropertyName("private")]
+    public bool Private { get; init; }
+
     public string FormattedDistance => Distance >= 1000
         ? $"{Distance / 1000:F1} km"
         : $"{Distance:F0} m";
