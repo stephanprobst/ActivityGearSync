@@ -67,6 +67,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<AuthenticateCommand>();
     services.AddTransient<UpdateGearCommand>();
     services.AddTransient<UpdateSportTypeCommand>();
+    services.AddTransient<UpdateActivityFlagsCommand>();
 }
 
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
@@ -149,6 +150,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
     {
         choices.Add(new MenuItem(MenuChoice.UpdateGear, "Update Gear on Activities"));
         choices.Add(new MenuItem(MenuChoice.UpdateSportType, "Update Activity Type"));
+        choices.Add(new MenuItem(MenuChoice.UpdateFlags, "Update Activity Flags"));
         choices.Add(new MenuItem(MenuChoice.ViewActivities, "View My Activities"));
         choices.Add(new MenuItem(MenuChoice.ViewGear, "View My Gear"));
     }
@@ -187,6 +189,11 @@ static async Task ExecuteMenuChoiceAsync(
         case MenuChoice.UpdateSportType:
             var updateSportTypeCommand = serviceProvider.GetRequiredService<UpdateSportTypeCommand>();
             await updateSportTypeCommand.ExecuteAsync(cancellationToken);
+            break;
+
+        case MenuChoice.UpdateFlags:
+            var updateFlagsCommand = serviceProvider.GetRequiredService<UpdateActivityFlagsCommand>();
+            await updateFlagsCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.ViewActivities:
@@ -444,6 +451,7 @@ internal enum MenuChoice
 {
     UpdateGear,
     UpdateSportType,
+    UpdateFlags,
     ViewActivities,
     ViewGear,
     Authenticate,
