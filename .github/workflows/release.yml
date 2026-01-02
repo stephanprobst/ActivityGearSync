@@ -69,7 +69,7 @@ jobs:
       - name: Get version from artifact
         id: version
         run: |
-          VERSION=$(cat artifacts/*/version.json | head -1 | jq -r '.Version')
+          VERSION=$(jq -r '.Version' "$(ls artifacts/*/version.json | head -1)")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Prepare release files
