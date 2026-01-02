@@ -58,7 +58,7 @@ jobs:
         id: version
         shell: bash
         run: |
-          VERSION=$(cat ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/version.json | jq -r '.version')
+          VERSION=$(cat ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/version.json | jq -r '.Version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
