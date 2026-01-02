@@ -26,3 +26,47 @@ jobs:
 
       - name: Build
         run: dotnet build ActivityGearSync/ActivityGearSync.csproj --configuration Release --no-restore
+
+  publish:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish AOT
+        run: dotnet publish ActivityGearSync/ActivityGearSync.csproj -c Release -r ${{ matrix.rid }}
+
+      - name: Get version from build output
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(cat ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/version.json | jq -r '.Version')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ActivityGearSync-${{ matrix.rid }}-${{ steps.version.outputs.version }}
+          path: |
+            ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/ActivityGearSync
+            ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/ActivityGearSync.exe
+            ActivityGearSync/bin/Release/net10.0/${{ matrix.rid }}/publish/version.json
+          if-no-files-found: error
