@@ -7,12 +7,13 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateVersionFile>true</GenerateVersionFile>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
   <!-- Analyzers & Versioning -->
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
+    <PackageReference Include="SimpleBranchVersioning" PrivateAssets="all" />
     <PackageReference Include="Meziantou.Analyzer" PrivateAssets="all" />
     <PackageReference Include="SonarAnalyzer.CSharp" PrivateAssets="all" />
     <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
