@@ -107,6 +107,19 @@ public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient auth
         return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
     }
 
+    public async Task<StravaActivity> UpdateActivityTextAsync(
+        long activityId,
+        string? name,
+        string? description,
+        CancellationToken cancellationToken = default)
+    {
+        var request = await CreateAuthorizedRequestAsync(HttpMethod.Put, $"/activities/{activityId}");
+        var textUpdate = new ActivityTextUpdateRequest { Name = name, Description = description };
+        request.Content = JsonContent.Create(textUpdate, AppJsonContext.Default.ActivityTextUpdateRequest);
+
+        return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
+    }
+
     private async Task<T> SendAndProcessAsync<T>(
         HttpRequestMessage request,
         JsonTypeInfo<T> jsonTypeInfo,
