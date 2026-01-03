@@ -419,5 +419,8 @@ dotnet_diagnostic.RCS1036.severity = warning
 # RCS1102: Make class static - May be intentional
 dotnet_diagnostic.RCS1102.severity = suggestion
 
+# RCS1118: Mark local variable as const
+dotnet_diagnostic.RCS1118.severity = warning
+
 # RCS1213: Remove unused member declaration / Member can be made private
 dotnet_diagnostic.RCS1213.severity = warning
