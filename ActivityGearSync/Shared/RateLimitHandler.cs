@@ -1,4 +1,4 @@
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 public sealed class RateLimitHandler(RateLimiter rateLimiter) : DelegatingHandler
 {

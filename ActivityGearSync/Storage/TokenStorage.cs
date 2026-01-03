@@ -1,10 +1,10 @@
 using System.Text.Json;
-using ActivityGearSync.Infrastructure;
 using ActivityGearSync.Models;
+using ActivityGearSync.Shared;
 
-namespace ActivityGearSync.Services;
+namespace ActivityGearSync.Storage;
 
-public sealed class TokenStorageService
+public sealed class TokenStorage
 {
     private readonly string _storagePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -14,7 +14,7 @@ public sealed class TokenStorageService
     private readonly string _tokensFilePath;
     private readonly string _credentialsFilePath;
 
-    public TokenStorageService()
+    public TokenStorage()
     {
         _tokensFilePath = Path.Combine(_storagePath, "tokens.json");
         _credentialsFilePath = Path.Combine(_storagePath, "credentials.json");

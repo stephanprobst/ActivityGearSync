@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using Spectre.Console;
+using ActivityGearSync.Clients;
 using ActivityGearSync.Models;
-using ActivityGearSync.Services;
+using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 

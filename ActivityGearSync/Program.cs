@@ -5,9 +5,10 @@ using Microsoft.Extensions.Http.Resilience;
 using Polly;
 using Spectre.Console;
 using ActivityGearSync.Commands;
-using ActivityGearSync.Infrastructure;
+using ActivityGearSync.Clients;
 using ActivityGearSync.Models;
-using ActivityGearSync.Services;
+using ActivityGearSync.Shared;
+using ActivityGearSync.Storage;
 
 // Setup DI
 var services = new ServiceCollection();
@@ -62,7 +63,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddHttpClient<GitHubReleaseClient>();
 
     // Services
-    services.AddSingleton<TokenStorageService>();
+    services.AddSingleton<TokenStorage>();
     services.AddSingleton<StravaAuthClient>();
 
     // Commands
@@ -77,7 +78,7 @@ static void ConfigureServices(IServiceCollection services)
 
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
 {
-    var tokenStorage = serviceProvider.GetRequiredService<TokenStorageService>();
+    var tokenStorage = serviceProvider.GetRequiredService<TokenStorage>();
     var authService = serviceProvider.GetRequiredService<StravaAuthClient>();
 
     using var cts = new CancellationTokenSource();
@@ -275,7 +276,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
         "Last 7 days" => (now.AddDays(-7), null),
         "Last 30 days" => (now.AddDays(-30), null),
         "Last 90 days" => (now.AddDays(-90), null),
-        "This year" => (new DateTime(now.Year, 1, 1), null),
+        "This year" => (new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local), null),
         _ => ((DateTime?)null, (DateTime?)null)
     };
 

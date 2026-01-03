@@ -1,4 +1,4 @@
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 public static class IconGenerator
 {

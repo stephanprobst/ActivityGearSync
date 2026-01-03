@@ -1,5 +1,5 @@
+using ActivityGearSync.Clients;
 using Spectre.Console;
-using ActivityGearSync.Services;
 
 namespace ActivityGearSync.Commands;
 
