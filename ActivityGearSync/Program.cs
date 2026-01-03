@@ -276,7 +276,7 @@ static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, Cancellat
         "Last 7 days" => (now.AddDays(-7), null),
         "Last 30 days" => (now.AddDays(-30), null),
         "Last 90 days" => (now.AddDays(-90), null),
-        "This year" => (new DateTime(now.Year, 1, 1), null),
+        "This year" => (new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local), null),
         _ => ((DateTime?)null, (DateTime?)null)
     };
 

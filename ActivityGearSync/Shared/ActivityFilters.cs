@@ -51,7 +51,7 @@ public static class DateRanges
             Last7Days => (now.AddDays(-Days7), null),
             Last30Days => (now.AddDays(-Days30), null),
             Last90Days => (now.AddDays(-Days90), null),
-            ThisYear => (new DateTime(now.Year, 1, 1), null),
+            ThisYear => (new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local), null),
             _ => (null, null)
         };
     }
