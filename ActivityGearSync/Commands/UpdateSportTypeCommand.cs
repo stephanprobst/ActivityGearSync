@@ -106,53 +106,9 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         }
     }
 
-    // Date range filter options
-    private static class DateRanges
-    {
-        public const string Last7Days = "Last 7 days";
-        public const string Last30Days = "Last 30 days";
-        public const string Last90Days = "Last 90 days";
-        public const string ThisYear = "This year";
-        public const string AllTime = "All time";
-
-        public static readonly string[] All = [Last7Days, Last30Days, Last90Days, ThisYear, AllTime];
-
-        public const int Days7 = 7;
-        public const int Days30 = 30;
-        public const int Days90 = 90;
-    }
-
-    // Sport type filter options
     private static class SportTypeFilters
     {
         public const string AllSportTypes = "All sport types";
-    }
-
-    // UI and display constants
-    private static class DisplayLimits
-    {
-        public const int SelectionPageSize = 15;
-        public const int ActivitiesTablePreviewCount = 10;
-        public const int FailedActivitiesPreviewCount = 5;
-        public const int ActivityNameMaxLength = 25;
-        public const int ActivityNameTruncatedLength = 22;
-    }
-
-    // Selection mode options
-    private static class SelectionModes
-    {
-        public const string SelectAll = "Select all";
-        public const string SelectIndividually = "Select individually...";
-        public const string Cancel = "Unselect all & Cancel";
-    }
-
-    // Rate limiting constants
-    private static class RateLimitThresholds
-    {
-        public const int LowShortTermWarning = 10;
-        public const int LowDailyWarning = 100;
-        public const int MaxRequestsPer15Min = 100;
-        public const int MaxRequestsPerDay = 1000;
     }
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -192,7 +148,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         }
 
         // Calculate date filter
-        var (after, before) = CalculateDateRange(dateRange);
+        var (after, before) = DateRanges.Calculate(dateRange);
 
         // Step 2: Fetch activities
         AnsiConsole.WriteLine();
@@ -230,7 +186,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         if (filtered.Count == 0)
         {
             AnsiConsole.MarkupLine("[yellow]No activities match your filters.[/]");
-            WaitForKey();
+            ConsoleHelpers.WaitForKey();
             return;
         }
 
@@ -260,7 +216,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         else if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
         {
             AnsiConsole.MarkupLine("[yellow]Selection cancelled.[/]");
-            WaitForKey();
+            ConsoleHelpers.WaitForKey();
             return;
         }
         else
@@ -277,7 +233,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
             if (selectedActivities.Count == 0)
             {
                 AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
-                WaitForKey();
+                ConsoleHelpers.WaitForKey();
                 return;
             }
         }
@@ -293,7 +249,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         if (categories.Count == 0)
         {
             AnsiConsole.MarkupLine("[yellow]Selected activities have unknown sport types that cannot be converted.[/]");
-            WaitForKey();
+            ConsoleHelpers.WaitForKey();
             return;
         }
 
@@ -301,7 +257,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         {
             AnsiConsole.MarkupLine("[yellow]Selected activities span multiple categories. Please select activities from the same category.[/]");
             AnsiConsole.MarkupLine($"[grey]Categories found: {string.Join(", ", categories)}[/]");
-            WaitForKey();
+            ConsoleHelpers.WaitForKey();
             return;
         }
 
@@ -344,7 +300,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         if (!await AnsiConsole.ConfirmAsync("Proceed with update?", cancellationToken: cancellationToken))
         {
             AnsiConsole.MarkupLine("[yellow]Update cancelled.[/]");
-            WaitForKey();
+            ConsoleHelpers.WaitForKey();
             return;
         }
 
@@ -414,7 +370,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
             }
         }
 
-        WaitForKey();
+        ConsoleHelpers.WaitForKey();
     }
 
     private static void DisplayActivitiesTable(List<StravaActivity> activities)
@@ -447,19 +403,6 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         AnsiConsole.Write(table);
     }
 
-    private static (DateTime? after, DateTime? before) CalculateDateRange(string dateRange)
-    {
-        var now = DateTime.Now;
-        return dateRange switch
-        {
-            DateRanges.Last7Days => (now.AddDays(-DateRanges.Days7), null),
-            DateRanges.Last30Days => (now.AddDays(-DateRanges.Days30), null),
-            DateRanges.Last90Days => (now.AddDays(-DateRanges.Days90), null),
-            DateRanges.ThisYear => (new DateTime(now.Year, 1, 1), null),
-            _ => (null, null)
-        };
-    }
-
     private static bool MatchesActivityCategory(StravaActivity activity, string category)
     {
         if (string.Equals(category, ActivityCategories.AllTypes, StringComparison.OrdinalIgnoreCase))
@@ -489,7 +432,7 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         // If we need to wait, show the wait time
         if (waitTime.HasValue && waitReason is not null)
         {
-            string waitTimeFormatted = FormatWaitTime(waitTime.Value);
+            string waitTimeFormatted = ConsoleHelpers.FormatWaitTime(waitTime.Value);
             task.Description = $"[yellow]Waiting {waitTimeFormatted} ({waitReason})[/] [grey]│[/] [dim]15m: {shortTerm}/{RateLimitThresholds.MaxRequestsPer15Min}, daily: {daily}/{RateLimitThresholds.MaxRequestsPerDay}[/]";
         }
         // If limits are low, show warning
@@ -504,27 +447,5 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
         {
             task.Description = $"[green]Updating {totalActivities} activities[/] [grey]│[/] [dim]15m: {shortTerm}/{RateLimitThresholds.MaxRequestsPer15Min}, daily: {daily}/{RateLimitThresholds.MaxRequestsPerDay}[/]";
         }
-    }
-
-    private static string FormatWaitTime(TimeSpan waitTime)
-    {
-        if (waitTime.TotalHours >= 1)
-        {
-            return $"{waitTime.Hours}h {waitTime.Minutes}m";
-        }
-
-        if (waitTime.TotalMinutes >= 1)
-        {
-            return $"{waitTime.Minutes}m {waitTime.Seconds}s";
-        }
-
-        return $"{waitTime.Seconds}s";
-    }
-
-    private static void WaitForKey()
-    {
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("Press any key to continue...");
-        Console.ReadKey(intercept: true);
     }
 }
