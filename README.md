@@ -13,6 +13,7 @@ A cross-platform .NET console application for bulk editing gear assignments on y
 - Bulk update activity flags (commute, trainer, privacy)
 - Filter activities by type, date range, and current values
 - View your activities and gear
+- Built-in self-update from GitHub releases
 - Secure local storage of API credentials (AES encrypted)
 - Rate limiting to respect API quotas
 
@@ -60,6 +61,7 @@ The main menu provides the following options:
 - **Update Activity Flags** - Bulk update commute, trainer, or privacy flags
 - **View My Activities** - Browse your recent activities
 - **View My Gear** - See your configured bikes and shoes
+- **Check for Updates** - Check for and install new versions from GitHub
 
 ## Security
 

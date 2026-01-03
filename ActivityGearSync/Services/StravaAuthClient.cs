@@ -120,16 +120,16 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService 
         string code = context.Request.QueryString["code"]
                       ?? throw new InvalidOperationException("No authorization code received.");
 
-        string responseHtml = """
-                              <!DOCTYPE html>
-                              <html>
-                              <head><title>Authentication Successful</title></head>
-                              <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                                  <h1>Authentication Successful!</h1>
-                                  <p>You can close this window and return to the application.</p>
-                              </body>
-                              </html>
-                              """;
+        const string responseHtml = """
+                                    <!DOCTYPE html>
+                                    <html>
+                                    <head><title>Authentication Successful</title></head>
+                                    <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                                        <h1>Authentication Successful!</h1>
+                                        <p>You can close this window and return to the application.</p>
+                                    </body>
+                                    </html>
+                                    """;
 
         byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseHtml);
         context.Response.ContentType = "text/html";

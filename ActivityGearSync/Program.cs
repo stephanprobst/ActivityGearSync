@@ -58,6 +58,9 @@ static void ConfigureServices(IServiceCollection services)
     // Default HttpClient for other services
     services.AddHttpClient();
 
+    // GitHub client for updates
+    services.AddHttpClient<GitHubReleaseClient>();
+
     // Services
     services.AddSingleton<TokenStorageService>();
     services.AddSingleton<StravaAuthClient>();
@@ -68,6 +71,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<UpdateGearCommand>();
     services.AddTransient<UpdateSportTypeCommand>();
     services.AddTransient<UpdateActivityFlagsCommand>();
+    services.AddTransient<UpdateCommand>();
 }
 
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
@@ -159,6 +163,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
         choices.Add(new MenuItem(MenuChoice.Authenticate, "Authenticate with Strava"));
     }
 
+    choices.Add(new MenuItem(MenuChoice.CheckUpdates, "Check for Updates"));
     choices.Add(new MenuItem(MenuChoice.Separator, "---"));
 
     if (isAuthenticated)
@@ -219,6 +224,11 @@ static async Task ExecuteMenuChoiceAsync(
         case MenuChoice.ReconfigureCredentials:
             var setupCommand = serviceProvider.GetRequiredService<SetupCommand>();
             await setupCommand.ExecuteAsync(cancellationToken);
+            break;
+
+        case MenuChoice.CheckUpdates:
+            var updateCommand = serviceProvider.GetRequiredService<UpdateCommand>();
+            await updateCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.Exit:
@@ -382,13 +392,13 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
         }
 
         AnsiConsole.Write(bikesTable);
-        AnsiConsole.WriteLine();
     }
     else
     {
         AnsiConsole.MarkupLine("[grey]No bikes configured.[/]");
-        AnsiConsole.WriteLine();
     }
+
+    AnsiConsole.WriteLine();
 
     // Display Shoes
     if (athlete.Shoes.Count > 0)
@@ -411,13 +421,13 @@ static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationTok
         }
 
         AnsiConsole.Write(shoesTable);
-        AnsiConsole.WriteLine();
     }
     else
     {
         AnsiConsole.MarkupLine("[grey]No shoes configured.[/]");
-        AnsiConsole.WriteLine();
     }
+
+    AnsiConsole.WriteLine();
 
     AnsiConsole.MarkupLine("[grey]Note: Strava does not support adding gear via external tools.[/]");
     AnsiConsole.MarkupLine("[grey]Gear must be managed through the Strava website.[/]");
@@ -457,6 +467,7 @@ internal enum MenuChoice
     Authenticate,
     Logout,
     ReconfigureCredentials,
+    CheckUpdates,
     Exit,
     Separator
 }
