@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
@@ -6,7 +5,6 @@ using Polly;
 using Spectre.Console;
 using ActivityGearSync.Commands;
 using ActivityGearSync.Clients;
-using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using ActivityGearSync.Storage;
 
@@ -74,6 +72,8 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<UpdateActivityFlagsCommand>();
     services.AddTransient<UpdateActivityTextCommand>();
     services.AddTransient<UpdateCommand>();
+    services.AddTransient<ViewActivitiesCommand>();
+    services.AddTransient<ViewGearCommand>();
 }
 
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
@@ -210,11 +210,13 @@ static async Task ExecuteMenuChoiceAsync(
             break;
 
         case MenuChoice.ViewActivities:
-            await ViewActivitiesAsync(serviceProvider, cancellationToken);
+            var viewActivitiesCommand = serviceProvider.GetRequiredService<ViewActivitiesCommand>();
+            await viewActivitiesCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.ViewGear:
-            await ViewGearAsync(serviceProvider, cancellationToken);
+            var viewGearCommand = serviceProvider.GetRequiredService<ViewGearCommand>();
+            await viewGearCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.Authenticate:
@@ -256,213 +258,6 @@ static void DisplayHeader()
     };
     AnsiConsole.Write(rule);
     AnsiConsole.WriteLine();
-}
-
-static async Task ViewActivitiesAsync(ServiceProvider serviceProvider, CancellationToken cancellationToken)
-{
-    var apiService = serviceProvider.GetRequiredService<StravaApiClient>();
-
-    AnsiConsole.Clear();
-    AnsiConsole.MarkupLine("[bold]My Activities[/]");
-    AnsiConsole.WriteLine();
-
-    string dateRange = await AnsiConsole.PromptAsync(new SelectionPrompt<string>()
-            .Title("Select [green]date range[/]:")
-            .AddChoices("Last 7 days", "Last 30 days", "Last 90 days", "This year", "All time"), cancellationToken);
-
-    var now = DateTime.Now;
-    var (after, _) = dateRange switch
-    {
-        "Last 7 days" => (now.AddDays(-7), null),
-        "Last 30 days" => (now.AddDays(-30), null),
-        "Last 90 days" => (now.AddDays(-90), null),
-        "This year" => (new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Local), null),
-        _ => ((DateTime?)null, (DateTime?)null)
-    };
-
-    List<StravaActivity>? activities = null;
-
-    await AnsiConsole.Progress()
-        .AutoClear(enabled: false)
-        .Columns(
-            new TaskDescriptionColumn(),
-            new ProgressBarColumn(),
-            new SpinnerColumn())
-        .StartAsync(async ctx =>
-        {
-            var task = ctx.AddTask("[green]Fetching activities...[/]");
-            task.IsIndeterminate = true;
-
-            activities = [.. await apiService.GetAllActivitiesAsync(
-                new Progress<(int fetched, int total)>(p =>
-                {
-                    task.Description = $"[green]Fetched {p.fetched} activities...[/]";
-                }),
-                after, before: null, cancellationToken)];
-
-            task.IsIndeterminate = false;
-            task.Value = 100;
-        });
-
-    activities ??= [];
-
-    if (activities.Count == 0)
-    {
-        AnsiConsole.MarkupLine("[yellow]No activities found.[/]");
-    }
-    else
-    {
-        // Fetch athlete for gear names
-        var athlete = await apiService.GetAthleteAsync(cancellationToken);
-        var allGear = athlete.AllGear.ToDictionary(g => g.Id, g => g.Name, StringComparer.Ordinal);
-
-        var table = new Table()
-            .Border(TableBorder.Rounded)
-            .AddColumn("Date")
-            .AddColumn("Name")
-            .AddColumn("Type")
-            .AddColumn("Distance")
-            .AddColumn("Duration")
-            .AddColumn("Gear");
-
-        foreach (var activity in activities.Take(20))
-        {
-            string gearName = activity.GearId is null
-                ? "[grey]None[/]"
-                : allGear.GetValueOrDefault(activity.GearId, "[grey]Unknown[/]");
-
-            table.AddRow(
-                activity.StartDateLocal.ToString("MMM dd yyyy", CultureInfo.InvariantCulture),
-                activity.Name.Length > 30 ? activity.Name[..27] + "..." : activity.Name,
-                activity.Type,
-                activity.FormattedDistance,
-                activity.FormattedDuration,
-                gearName);
-        }
-
-        AnsiConsole.WriteLine();
-        AnsiConsole.Write(table);
-
-        if (activities.Count > 20)
-        {
-            AnsiConsole.MarkupLine($"[grey]Showing 20 of {activities.Count} activities[/]");
-        }
-    }
-
-    AnsiConsole.WriteLine();
-    AnsiConsole.MarkupLine("Press any key to continue...");
-    Console.ReadKey(intercept: true);
-}
-
-static async Task ViewGearAsync(ServiceProvider serviceProvider, CancellationToken cancellationToken)
-{
-    var apiService = serviceProvider.GetRequiredService<StravaApiClient>();
-
-    AnsiConsole.Clear();
-    AnsiConsole.MarkupLine("[bold]My Gear[/]");
-    AnsiConsole.WriteLine();
-
-    StravaAthlete? athlete = null;
-
-    await AnsiConsole.Status()
-        .Spinner(Spinner.Known.Dots)
-        .StartAsync("Fetching gear...", async _ =>
-        {
-            athlete = await apiService.GetAthleteAsync(cancellationToken);
-        });
-
-    if (athlete is null)
-    {
-        AnsiConsole.MarkupLine("[red]Failed to fetch gear.[/]");
-        AnsiConsole.MarkupLine("Press any key to continue...");
-        Console.ReadKey(intercept: true);
-        return;
-    }
-
-    // Display Bikes
-    if (athlete.Bikes.Count > 0)
-    {
-        AnsiConsole.MarkupLine("[bold yellow]Bikes[/]");
-        var bikesTable = new Table()
-            .Border(TableBorder.Rounded)
-            .AddColumn("Name")
-            .AddColumn("Brand")
-            .AddColumn("Distance")
-            .AddColumn("Primary");
-
-        foreach (var bike in athlete.Bikes)
-        {
-            bikesTable.AddRow(
-                bike.Name,
-                bike.BrandName ?? "[grey]-[/]",
-                bike.FormattedDistance,
-                bike.Primary ? "[green]Yes[/]" : "[grey]No[/]");
-        }
-
-        AnsiConsole.Write(bikesTable);
-    }
-    else
-    {
-        AnsiConsole.MarkupLine("[grey]No bikes configured.[/]");
-    }
-
-    AnsiConsole.WriteLine();
-
-    // Display Shoes
-    if (athlete.Shoes.Count > 0)
-    {
-        AnsiConsole.MarkupLine("[bold yellow]Shoes[/]");
-        var shoesTable = new Table()
-            .Border(TableBorder.Rounded)
-            .AddColumn("Name")
-            .AddColumn("Brand")
-            .AddColumn("Distance")
-            .AddColumn("Primary");
-
-        foreach (var shoe in athlete.Shoes)
-        {
-            shoesTable.AddRow(
-                shoe.Name,
-                shoe.BrandName ?? "[grey]-[/]",
-                shoe.FormattedDistance,
-                shoe.Primary ? "[green]Yes[/]" : "[grey]No[/]");
-        }
-
-        AnsiConsole.Write(shoesTable);
-    }
-    else
-    {
-        AnsiConsole.MarkupLine("[grey]No shoes configured.[/]");
-    }
-
-    AnsiConsole.WriteLine();
-
-    AnsiConsole.MarkupLine("[grey]Note: Strava does not support adding gear via external tools.[/]");
-    AnsiConsole.MarkupLine("[grey]Gear must be managed through the Strava website.[/]");
-    AnsiConsole.MarkupLine("[link]https://www.strava.com/settings/gear[/]");
-    AnsiConsole.WriteLine();
-
-    if (await AnsiConsole.ConfirmAsync("Would you like to open the Strava gear settings page?", defaultValue: false, cancellationToken))
-    {
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = "https://www.strava.com/settings/gear",
-                UseShellExecute = true
-            });
-            AnsiConsole.MarkupLine("[green]Browser opened.[/]");
-        }
-        catch
-        {
-            AnsiConsole.MarkupLine("[yellow]Could not open browser. Please navigate to:[/]");
-            AnsiConsole.MarkupLine("[link]https://www.strava.com/settings/gear[/]");
-        }
-    }
-
-    AnsiConsole.WriteLine();
-    AnsiConsole.MarkupLine("Press any key to continue...");
-    Console.ReadKey(intercept: true);
 }
 
 internal enum MenuChoice
