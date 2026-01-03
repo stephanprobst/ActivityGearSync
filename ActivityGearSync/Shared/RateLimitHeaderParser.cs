@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Net.Http.Headers;
 using ActivityGearSync.Models;
 
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 public static class RateLimitHeaderParser
 {

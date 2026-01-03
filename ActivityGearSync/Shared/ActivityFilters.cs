@@ -1,6 +1,6 @@
 using ActivityGearSync.Models;
 
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 public static class ActivityTypes
 {

@@ -2,12 +2,13 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
-using ActivityGearSync.Infrastructure;
 using ActivityGearSync.Models;
+using ActivityGearSync.Shared;
+using ActivityGearSync.Storage;
 
-namespace ActivityGearSync.Services;
+namespace ActivityGearSync.Clients;
 
-public sealed class StravaAuthClient(HttpClient httpClient, TokenStorageService tokenStorage)
+public sealed class StravaAuthClient(HttpClient httpClient, TokenStorage tokenStorage)
 {
     private const string AuthorizeUrl = "https://www.strava.com/oauth/authorize";
     private const string TokenUrl = "https://www.strava.com/oauth/token";

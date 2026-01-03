@@ -1,8 +1,8 @@
 using System.Globalization;
-using Spectre.Console;
-using ActivityGearSync.Infrastructure;
+using ActivityGearSync.Clients;
 using ActivityGearSync.Models;
-using ActivityGearSync.Services;
+using ActivityGearSync.Shared;
+using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 

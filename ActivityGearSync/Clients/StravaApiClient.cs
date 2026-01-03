@@ -1,10 +1,10 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
-using ActivityGearSync.Infrastructure;
 using ActivityGearSync.Models;
+using ActivityGearSync.Shared;
 
-namespace ActivityGearSync.Services;
+namespace ActivityGearSync.Clients;
 
 public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient authClient)
 {

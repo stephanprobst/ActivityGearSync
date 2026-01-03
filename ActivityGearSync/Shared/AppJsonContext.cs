@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using ActivityGearSync.Models;
 
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 [JsonSourceGenerationOptions(
     WriteIndented = true,

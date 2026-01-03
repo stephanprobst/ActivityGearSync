@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 public static class EncryptionHelper
 {

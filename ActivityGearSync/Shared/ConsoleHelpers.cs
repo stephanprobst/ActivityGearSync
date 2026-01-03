@@ -1,6 +1,6 @@
 using Spectre.Console;
 
-namespace ActivityGearSync.Infrastructure;
+namespace ActivityGearSync.Shared;
 
 public static class ConsoleHelpers
 {

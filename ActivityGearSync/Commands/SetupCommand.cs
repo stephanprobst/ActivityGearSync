@@ -1,11 +1,11 @@
-using Spectre.Console;
-using ActivityGearSync.Infrastructure;
 using ActivityGearSync.Models;
-using ActivityGearSync.Services;
+using ActivityGearSync.Shared;
+using ActivityGearSync.Storage;
+using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class SetupCommand(TokenStorageService tokenStorage)
+public sealed class SetupCommand(TokenStorage tokenStorage)
 {
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
