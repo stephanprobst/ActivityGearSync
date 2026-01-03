@@ -37,6 +37,9 @@ public sealed class StravaActivity
     [JsonPropertyName("private")]
     public bool Private { get; init; }
 
+    [JsonPropertyName("description")]
+    public string? Description { get; init; }
+
     public string FormattedDistance => Distance >= 1000
         ? $"{Distance / 1000:F1} km"
         : $"{Distance:F0} m";
