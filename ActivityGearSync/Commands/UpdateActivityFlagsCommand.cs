@@ -88,9 +88,7 @@ public sealed class UpdateActivityFlagsCommand(StravaApiClient apiClient, RateLi
 
                 var result = await apiClient.GetAllActivitiesAsync(
                     new Progress<(int fetched, int total)>(p =>
-                    {
-                        task.Description = $"[green]Fetched {p.fetched} activities...[/]";
-                    }),
+                        task.Description = $"[green]Fetched {p.fetched} activities...[/]"),
                     after, before, cancellationToken);
 
                 activities.AddRange(result);
@@ -140,23 +138,21 @@ public sealed class UpdateActivityFlagsCommand(StravaApiClient apiClient, RateLi
             ConsoleHelpers.WaitForKey();
             return;
         }
-        else
-        {
-            selectedActivities = await AnsiConsole.PromptAsync(
-                new MultiSelectionPrompt<StravaActivity>()
-                    .Title("Select activities to update:")
-                    .PageSize(DisplayLimits.SelectionPageSize)
-                    .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
-                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                    .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
-                    .AddChoices(filtered), cancellationToken);
 
-            if (selectedActivities.Count == 0)
-            {
-                AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
-                ConsoleHelpers.WaitForKey();
-                return;
-            }
+        selectedActivities = await AnsiConsole.PromptAsync(
+            new MultiSelectionPrompt<StravaActivity>()
+                .Title("Select activities to update:")
+                .PageSize(DisplayLimits.SelectionPageSize)
+                .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
+                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+                .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
+                .AddChoices(filtered), cancellationToken);
+
+        if (selectedActivities.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
+            ConsoleHelpers.WaitForKey();
+            return;
         }
 
         // Step 5: Select target value

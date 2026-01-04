@@ -85,9 +85,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
 
                 var result = await apiClient.GetAllActivitiesAsync(
                     new Progress<(int fetched, int total)>(p =>
-                    {
-                        task.Description = $"[green]Fetched {p.fetched} activities...[/]";
-                    }),
+                        task.Description = $"[green]Fetched {p.fetched} activities...[/]"),
                     after, before, cancellationToken);
 
                 activities.AddRange(result);
@@ -125,11 +123,8 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
                     SelectionModes.SelectIndividually,
                     SelectionModes.Cancel), cancellationToken);
 
-        List<StravaActivity> selectedActivities;
-
         if (selectionMode.StartsWith(SelectionModes.SelectAll, StringComparison.OrdinalIgnoreCase))
         {
-            selectedActivities = filtered;
             AnsiConsole.MarkupLine($"[green]Selected all {filtered.Count} activities.[/]");
         }
         else if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
@@ -138,23 +133,21 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
             ConsoleHelpers.WaitForKey();
             return;
         }
-        else
-        {
-            selectedActivities = await AnsiConsole.PromptAsync(
-                new MultiSelectionPrompt<StravaActivity>()
-                    .Title("Select activities to update:")
-                    .PageSize(DisplayLimits.SelectionPageSize)
-                    .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
-                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                    .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
-                    .AddChoices(filtered), cancellationToken);
 
-            if (selectedActivities.Count == 0)
-            {
-                AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
-                ConsoleHelpers.WaitForKey();
-                return;
-            }
+        var selectedActivities = await AnsiConsole.PromptAsync(
+            new MultiSelectionPrompt<StravaActivity>()
+                .Title("Select activities to update:")
+                .PageSize(DisplayLimits.SelectionPageSize)
+                .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
+                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+                .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
+                .AddChoices(filtered), cancellationToken);
+
+        if (selectedActivities.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
+            ConsoleHelpers.WaitForKey();
+            return;
         }
 
         // Step 5: Select target gear

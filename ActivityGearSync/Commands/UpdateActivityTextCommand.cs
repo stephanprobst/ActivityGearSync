@@ -177,23 +177,21 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
             ConsoleHelpers.WaitForKey();
             return;
         }
-        else
-        {
-            selectedActivities = await AnsiConsole.PromptAsync(
-                new MultiSelectionPrompt<StravaActivity>()
-                    .Title("Select activities to update:")
-                    .PageSize(DisplayLimits.SelectionPageSize)
-                    .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
-                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                    .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
-                    .AddChoices(filtered), cancellationToken);
 
-            if (selectedActivities.Count == 0)
-            {
-                AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
-                ConsoleHelpers.WaitForKey();
-                return;
-            }
+        selectedActivities = await AnsiConsole.PromptAsync(
+            new MultiSelectionPrompt<StravaActivity>()
+                .Title("Select activities to update:")
+                .PageSize(DisplayLimits.SelectionPageSize)
+                .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
+                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+                .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
+                .AddChoices(filtered), cancellationToken);
+
+        if (selectedActivities.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
+            ConsoleHelpers.WaitForKey();
+            return;
         }
 
         // Step 7: Preview changes
