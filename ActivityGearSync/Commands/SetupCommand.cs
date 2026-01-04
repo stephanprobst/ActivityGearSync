@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using ActivityGearSync.Storage;
@@ -48,7 +49,7 @@ public sealed class SetupCommand(TokenStorage tokenStorage)
         {
             try
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                Process.Start(new ProcessStartInfo
                 {
                     FileName = "https://www.strava.com/settings/api",
                     UseShellExecute = true
@@ -71,7 +72,7 @@ public sealed class SetupCommand(TokenStorage tokenStorage)
         AnsiConsole.MarkupLine($"Upload the icon from: [cyan]{iconPath}[/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("Press any key once you've uploaded the icon...");
-        System.Console.ReadKey(intercept: true);
+        Console.ReadKey(intercept: true);
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLine("[bold yellow]Step 3:[/] Enter Your API Credentials");
@@ -100,9 +101,7 @@ public sealed class SetupCommand(TokenStorage tokenStorage)
 
         await AnsiConsole.Status()
             .StartAsync("Saving credentials...", async _ =>
-            {
-                await tokenStorage.SaveCredentialsAsync(credentials);
-            });
+                await tokenStorage.SaveCredentialsAsync(credentials));
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[green]Credentials saved successfully![/]");
@@ -110,6 +109,6 @@ public sealed class SetupCommand(TokenStorage tokenStorage)
         AnsiConsole.WriteLine();
 
         AnsiConsole.MarkupLine("Press any key to continue...");
-        System.Console.ReadKey(intercept: true);
+        Console.ReadKey(intercept: true);
     }
 }

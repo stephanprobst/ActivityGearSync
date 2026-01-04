@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using System.Web;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
@@ -132,7 +133,7 @@ public sealed class StravaAuthClient(HttpClient httpClient, TokenStorage tokenSt
                                     </html>
                                     """;
 
-        byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseHtml);
+        byte[] buffer = Encoding.UTF8.GetBytes(responseHtml);
         context.Response.ContentType = "text/html";
         context.Response.ContentLength64 = buffer.Length;
         await context.Response.OutputStream.WriteAsync(buffer, cancellationToken);

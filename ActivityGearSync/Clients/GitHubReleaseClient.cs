@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
@@ -24,7 +25,7 @@ public sealed class GitHubReleaseClient(HttpClient httpClient)
 
         var response = await httpClient.SendAsync(request, cancellationToken);
 
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }

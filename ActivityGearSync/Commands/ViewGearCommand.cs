@@ -32,9 +32,7 @@ public sealed class ViewGearCommand(StravaApiClient apiClient)
         await AnsiConsole.Status()
             .Spinner(Spinner.Known.Dots)
             .StartAsync("Fetching gear...", async _ =>
-            {
-                athlete = await apiClient.GetAthleteAsync(cancellationToken);
-            });
+                athlete = await apiClient.GetAthleteAsync(cancellationToken));
 
         if (athlete is null)
         {

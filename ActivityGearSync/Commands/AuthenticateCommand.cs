@@ -40,21 +40,21 @@ public sealed class AuthenticateCommand(StravaAuthClient authClient)
 
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("Press any key to continue...");
-            System.Console.ReadKey(intercept: true);
+            Console.ReadKey(intercept: true);
             return true;
         }
         catch (OperationCanceledException)
         {
             AnsiConsole.MarkupLine("[yellow]Authentication was cancelled or timed out.[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
-            System.Console.ReadKey(intercept: true);
+            Console.ReadKey(intercept: true);
             return false;
         }
         catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"[red]Authentication failed: {ex.Message}[/]");
             AnsiConsole.MarkupLine("Press any key to continue...");
-            System.Console.ReadKey(intercept: true);
+            Console.ReadKey(intercept: true);
             return false;
         }
     }

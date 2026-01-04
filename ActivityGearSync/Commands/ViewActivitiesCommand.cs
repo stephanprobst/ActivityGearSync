@@ -54,9 +54,7 @@ public sealed class ViewActivitiesCommand(StravaApiClient apiClient)
 
                 activities = [.. await apiClient.GetAllActivitiesAsync(
                     new Progress<(int fetched, int total)>(p =>
-                    {
-                        task.Description = $"[green]Fetched {p.fetched} activities...[/]";
-                    }),
+                        task.Description = $"[green]Fetched {p.fetched} activities...[/]"),
                     after, before: null, cancellationToken)];
 
                 task.IsIndeterminate = false;

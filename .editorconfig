@@ -383,6 +383,9 @@ dotnet_diagnostic.MA0007.severity = none
 # MA0040: Use an overload with a CancellationToken
 dotnet_diagnostic.MA0040.severity = warning
 
+# MA0071: Avoid using redundant else
+dotnet_diagnostic.MA0071.severity = error
+
 ###############################
 # SonarAnalyzer
 ###############################
@@ -411,7 +414,7 @@ dotnet_diagnostic.AsyncFixer01.severity = none
 ###############################
 
 # RCS1021: Convert lambda expression body to expression-body
-dotnet_diagnostic.RCS1021.severity = suggestion
+dotnet_diagnostic.RCS1021.severity = error
 
 # RCS1036: Remove unnecessary blank line
 dotnet_diagnostic.RCS1036.severity = warning
