@@ -156,44 +156,19 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
 
         DisplayActivitiesTable(filtered, isEditingName);
 
-        string selectionMode = await AnsiConsole.PromptAsync(
-            new SelectionPrompt<string>()
-                .Title("How would you like to select activities?")
-                .AddChoices(
-                    $"{SelectionModes.SelectAll} ({filtered.Count} activities)",
-                    SelectionModes.SelectIndividually,
-                    SelectionModes.Cancel), cancellationToken);
+        var selectedActivities = await ConsoleHelpers.PromptActivitySelectionAsync(
+            filtered,
+            a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})",
+            cancellationToken);
 
-        if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
+        if (selectedActivities is null or { Count: 0 })
         {
-            AnsiConsole.MarkupLine("[yellow]Selection cancelled.[/]");
-            ConsoleHelpers.WaitForKey();
-            return;
-        }
+            if (selectedActivities is { Count: 0 })
+            {
+                AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
+                ConsoleHelpers.WaitForKey();
+            }
 
-        List<StravaActivity> selectedActivities;
-
-        if (selectionMode.StartsWith(SelectionModes.SelectAll, StringComparison.OrdinalIgnoreCase))
-        {
-            selectedActivities = filtered;
-            AnsiConsole.MarkupLine($"[green]Selected all {filtered.Count} activities.[/]");
-        }
-        else
-        {
-            selectedActivities = await AnsiConsole.PromptAsync(
-                new MultiSelectionPrompt<StravaActivity>()
-                    .Title("Select activities to update:")
-                    .PageSize(DisplayLimits.SelectionPageSize)
-                    .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
-                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                    .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
-                    .AddChoices(filtered), cancellationToken);
-        }
-
-        if (selectedActivities.Count == 0)
-        {
-            AnsiConsole.MarkupLine("[yellow]No activities selected.[/]");
-            ConsoleHelpers.WaitForKey();
             return;
         }
 
