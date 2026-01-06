@@ -204,25 +204,31 @@ public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimite
                     SelectionModes.SelectIndividually,
                     SelectionModes.Cancel), cancellationToken);
 
-        if (selectionMode.StartsWith(SelectionModes.SelectAll, StringComparison.OrdinalIgnoreCase))
-        {
-            AnsiConsole.MarkupLine($"[green]Selected all {filtered.Count} activities.[/]");
-        }
-        else if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
         {
             AnsiConsole.MarkupLine("[yellow]Selection cancelled.[/]");
             ConsoleHelpers.WaitForKey();
             return;
         }
 
-        var selectedActivities = await AnsiConsole.PromptAsync(
-            new MultiSelectionPrompt<StravaActivity>()
-                .Title("Select activities to update:")
-                .PageSize(DisplayLimits.SelectionPageSize)
-                .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
-                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.SportType})")
-                .AddChoices(filtered), cancellationToken);
+        List<StravaActivity> selectedActivities;
+
+        if (selectionMode.StartsWith(SelectionModes.SelectAll, StringComparison.OrdinalIgnoreCase))
+        {
+            selectedActivities = filtered;
+            AnsiConsole.MarkupLine($"[green]Selected all {filtered.Count} activities.[/]");
+        }
+        else
+        {
+            selectedActivities = await AnsiConsole.PromptAsync(
+                new MultiSelectionPrompt<StravaActivity>()
+                    .Title("Select activities to update:")
+                    .PageSize(DisplayLimits.SelectionPageSize)
+                    .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
+                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+                    .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.SportType})")
+                    .AddChoices(filtered), cancellationToken);
+        }
 
         if (selectedActivities.Count == 0)
         {

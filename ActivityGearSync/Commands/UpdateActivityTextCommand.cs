@@ -164,6 +164,13 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
                     SelectionModes.SelectIndividually,
                     SelectionModes.Cancel), cancellationToken);
 
+        if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
+        {
+            AnsiConsole.MarkupLine("[yellow]Selection cancelled.[/]");
+            ConsoleHelpers.WaitForKey();
+            return;
+        }
+
         List<StravaActivity> selectedActivities;
 
         if (selectionMode.StartsWith(SelectionModes.SelectAll, StringComparison.OrdinalIgnoreCase))
@@ -171,21 +178,17 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
             selectedActivities = filtered;
             AnsiConsole.MarkupLine($"[green]Selected all {filtered.Count} activities.[/]");
         }
-        else if (string.Equals(selectionMode, SelectionModes.Cancel, StringComparison.OrdinalIgnoreCase))
+        else
         {
-            AnsiConsole.MarkupLine("[yellow]Selection cancelled.[/]");
-            ConsoleHelpers.WaitForKey();
-            return;
+            selectedActivities = await AnsiConsole.PromptAsync(
+                new MultiSelectionPrompt<StravaActivity>()
+                    .Title("Select activities to update:")
+                    .PageSize(DisplayLimits.SelectionPageSize)
+                    .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
+                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+                    .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
+                    .AddChoices(filtered), cancellationToken);
         }
-
-        selectedActivities = await AnsiConsole.PromptAsync(
-            new MultiSelectionPrompt<StravaActivity>()
-                .Title("Select activities to update:")
-                .PageSize(DisplayLimits.SelectionPageSize)
-                .MoreChoicesText("[grey](Move up and down to see more activities)[/]")
-                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                .UseConverter(a => $"{a.StartDateLocal:MMM dd} - {Markup.Escape(a.Name)} ({a.FormattedDistance})")
-                .AddChoices(filtered), cancellationToken);
 
         if (selectedActivities.Count == 0)
         {
