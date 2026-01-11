@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -118,6 +119,25 @@ public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient auth
         request.Content = JsonContent.Create(textUpdate, AppJsonContext.Default.ActivityTextUpdateRequest);
 
         return await SendAndProcessAsync(request, AppJsonContext.Default.StravaActivity, cancellationToken);
+    }
+
+    public async Task<ActivityStreams?> GetActivityStreamsAsync(
+        long activityId,
+        CancellationToken cancellationToken = default)
+    {
+        const string streamKeys = "time,latlng,altitude,heartrate,cadence,watts,temp";
+        string url = $"/activities/{activityId}/streams?keys={streamKeys}&key_by_type=true";
+
+        var request = await CreateAuthorizedRequestAsync(HttpMethod.Get, url);
+
+        try
+        {
+            return await SendAndProcessAsync(request, AppJsonContext.Default.ActivityStreams, cancellationToken);
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
 
     private async Task<T> SendAndProcessAsync<T>(

@@ -22,4 +22,6 @@ namespace ActivityGearSync.Shared;
 [JsonSerializable(typeof(GitHubRelease))]
 [JsonSerializable(typeof(GitHubAsset))]
 [JsonSerializable(typeof(List<GitHubAsset>))]
+[JsonSerializable(typeof(ActivityStreams))]
+[JsonSerializable(typeof(StreamData))]
 public partial class AppJsonContext : JsonSerializerContext;
