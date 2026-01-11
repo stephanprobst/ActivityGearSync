@@ -82,3 +82,20 @@ public static class RateLimitThresholds
     public const int MaxRequestsPer15Min = 100;
     public const int MaxRequestsPerDay = 1000;
 }
+
+public static class ExportFormats
+{
+    public const string Gpx = "GPX only";
+    public const string Tcx = "TCX only";
+    public const string Both = "Both GPX and TCX";
+
+    public static readonly string[] All = [Gpx, Tcx, Both];
+}
+
+public static class ExportStatus
+{
+    public const string Exported = "Exported";
+    public const string Skipped = "Skipped (file exists)";
+    public const string NoGps = "No GPS data";
+    public const string Failed = "Failed";
+}

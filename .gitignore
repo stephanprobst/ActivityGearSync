@@ -34,3 +34,6 @@ Thumbs.db
 
 # Test results
 TestResults/
+
+# Application output
+exports/

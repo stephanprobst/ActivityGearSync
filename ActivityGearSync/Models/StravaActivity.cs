@@ -40,6 +40,11 @@ public sealed class StravaActivity
     [JsonPropertyName("description")]
     public string? Description { get; init; }
 
+    [JsonPropertyName("start_latlng")]
+    public double[]? StartLatLng { get; init; }
+
+    public bool HasGps => StartLatLng is { Length: 2 };
+
     public string FormattedDistance => Distance >= 1000
         ? $"{Distance / 1000:F1} km"
         : $"{Distance:F0} m";

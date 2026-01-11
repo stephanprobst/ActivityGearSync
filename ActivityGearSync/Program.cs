@@ -71,6 +71,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<UpdateSportTypeCommand>();
     services.AddTransient<UpdateActivityFlagsCommand>();
     services.AddTransient<UpdateActivityTextCommand>();
+    services.AddTransient<ExportActivitiesCommand>();
     services.AddTransient<UpdateCommand>();
     services.AddTransient<ViewActivitiesCommand>();
     services.AddTransient<ViewGearCommand>();
@@ -158,6 +159,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
         choices.Add(new MenuItem(MenuChoice.UpdateSportType, "Update Activity Type"));
         choices.Add(new MenuItem(MenuChoice.UpdateFlags, "Update Activity Flags"));
         choices.Add(new MenuItem(MenuChoice.UpdateText, "Update Activity Name/Description"));
+        choices.Add(new MenuItem(MenuChoice.ExportActivities, "Export Activities (GPX/TCX) [Beta]"));
         choices.Add(new MenuItem(MenuChoice.ViewActivities, "View My Activities"));
         choices.Add(new MenuItem(MenuChoice.ViewGear, "View My Gear"));
     }
@@ -207,6 +209,11 @@ static async Task ExecuteMenuChoiceAsync(
         case MenuChoice.UpdateText:
             var updateTextCommand = serviceProvider.GetRequiredService<UpdateActivityTextCommand>();
             await updateTextCommand.ExecuteAsync(cancellationToken);
+            break;
+
+        case MenuChoice.ExportActivities:
+            var exportCommand = serviceProvider.GetRequiredService<ExportActivitiesCommand>();
+            await exportCommand.ExecuteAsync(cancellationToken);
             break;
 
         case MenuChoice.ViewActivities:
@@ -266,6 +273,7 @@ internal enum MenuChoice
     UpdateSportType,
     UpdateFlags,
     UpdateText,
+    ExportActivities,
     ViewActivities,
     ViewGear,
     Authenticate,
