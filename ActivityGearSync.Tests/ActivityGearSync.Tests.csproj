@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <IsTestProject>true</IsTestProject>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
     <!-- Disable async naming rule for test methods -->
     <NoWarn>$(NoWarn);IDE1006</NoWarn>
   </PropertyGroup>
