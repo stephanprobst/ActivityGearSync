@@ -28,7 +28,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Run tests
-        run: dotnet test --solution ActivityGearSync.slnx --configuration Release --no-build
+        run: dotnet test --configuration Release --no-build
 
   publish:
     needs: build
