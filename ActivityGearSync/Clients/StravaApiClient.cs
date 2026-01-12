@@ -2,12 +2,13 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 
 namespace ActivityGearSync.Clients;
 
-public sealed class StravaApiClient(HttpClient httpClient, StravaAuthClient authClient)
+public sealed class StravaApiClient(HttpClient httpClient, IStravaAuthClient authClient) : IStravaApiClient
 {
     private const string BaseUrl = "https://www.strava.com/api/v3";
 

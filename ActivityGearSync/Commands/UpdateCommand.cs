@@ -1,11 +1,12 @@
 using System.Diagnostics;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
+using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class UpdateCommand(GitHubReleaseClient releaseClient)
+public sealed class UpdateCommand(IGitHubReleaseClient releaseClient)
 {
     private static class Messages
     {
@@ -55,8 +56,8 @@ public sealed class UpdateCommand(GitHubReleaseClient releaseClient)
         }
 
         string latestVersion = release.TagName.TrimStart('v');
-        bool isDevBuild = IsDevBuild(currentVersion);
-        bool updateAvailable = isDevBuild || IsNewerVersion(latestVersion, currentVersion);
+        bool isDevBuild = VersionLogic.IsDevBuild(currentVersion);
+        bool updateAvailable = isDevBuild || VersionLogic.IsNewerVersion(latestVersion, currentVersion);
 
         if (!updateAvailable)
         {
@@ -84,7 +85,7 @@ public sealed class UpdateCommand(GitHubReleaseClient releaseClient)
         AnsiConsole.WriteLine();
 
         // Find asset for current platform
-        string rid = GetRuntimeIdentifier();
+        string rid = VersionLogic.GetRuntimeIdentifier();
         var asset = release.Assets.FirstOrDefault(a =>
             a.Name.Contains(rid, StringComparison.OrdinalIgnoreCase));
 
@@ -95,7 +96,7 @@ public sealed class UpdateCommand(GitHubReleaseClient releaseClient)
             return;
         }
 
-        AnsiConsole.MarkupLine($"Download size: [cyan]{FormatFileSize(asset.Size)}[/]");
+        AnsiConsole.MarkupLine($"Download size: [cyan]{VersionLogic.FormatFileSize(asset.Size)}[/]");
         AnsiConsole.WriteLine();
 
         if (!await AnsiConsole.ConfirmAsync("Do you want to download and install this update?",
@@ -171,50 +172,6 @@ public sealed class UpdateCommand(GitHubReleaseClient releaseClient)
 
             WaitForKey();
         }
-    }
-
-    private static bool IsDevBuild(string version)
-    {
-        // Release builds have x.y.z format, anything else is a dev build
-        return !Version.TryParse(version, out _);
-    }
-
-    private static bool IsNewerVersion(string latest, string current)
-    {
-        // Try to parse as semantic versions
-        if (Version.TryParse(latest, out var latestVer) &&
-            Version.TryParse(current, out var currentVer))
-        {
-            return latestVer > currentVer;
-        }
-
-        // Fallback to string comparison
-        return !string.Equals(latest, current, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string GetRuntimeIdentifier()
-    {
-        return (OperatingSystem.IsWindows(), OperatingSystem.IsMacOS()) switch
-        {
-            (true, _) => "win-x64",
-            (_, true) => "osx-arm64",
-            _ => "linux-x64"
-        };
-    }
-
-    private static string FormatFileSize(long bytes)
-    {
-        string[] sizes = ["B", "KB", "MB", "GB"];
-        double size = bytes;
-        int order = 0;
-
-        while (size >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            size /= 1024;
-        }
-
-        return $"{size:0.##} {sizes[order]}";
     }
 
     private static async Task ApplyUpdateAsync(string downloadedPath, CancellationToken cancellationToken)

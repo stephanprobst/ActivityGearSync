@@ -1,12 +1,12 @@
 using System.Globalization;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
+public sealed class UpdateActivityTextCommand(IStravaApiClient apiClient, RateLimiter rateLimiter)
 {
     private static class FieldTypes
     {
@@ -14,16 +14,6 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
         public const string Description = "Activity description";
 
         public static readonly string[] All = [Name, Description];
-    }
-
-    private static class Operations
-    {
-        public const string Set = "Set new value";
-        public const string AddPrefix = "Add prefix";
-        public const string AddSuffix = "Add suffix";
-        public const string FindReplace = "Find & Replace";
-
-        public static readonly string[] All = [Set, AddPrefix, AddSuffix, FindReplace];
     }
 
     private static class NameFilters
@@ -68,7 +58,7 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
         string operation = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]operation[/]:")
-                .AddChoices(Operations.All), cancellationToken);
+                .AddChoices(TextTransformLogic.Operations.All), cancellationToken);
 
         // Step 3: Get operation parameters
         AnsiConsole.WriteLine();
@@ -302,23 +292,23 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
 
         return operation switch
         {
-            Operations.Set => new OperationParams
+            TextTransformLogic.Operations.Set => new OperationParams
             {
                 NewValue = await GetSetValueAsync(fieldName, isEditingName, cancellationToken)
             },
-            Operations.AddPrefix => new OperationParams
+            TextTransformLogic.Operations.AddPrefix => new OperationParams
             {
                 Prefix = await AnsiConsole.PromptAsync(
                     new TextPrompt<string>($"Enter prefix to add to {fieldName}:")
                         .PromptStyle("green"), cancellationToken)
             },
-            Operations.AddSuffix => new OperationParams
+            TextTransformLogic.Operations.AddSuffix => new OperationParams
             {
                 Suffix = await AnsiConsole.PromptAsync(
                     new TextPrompt<string>($"Enter suffix to add to {fieldName}:")
                         .PromptStyle("green"), cancellationToken)
             },
-            Operations.FindReplace => new OperationParams
+            TextTransformLogic.Operations.FindReplace => new OperationParams
             {
                 FindText = await AnsiConsole.PromptAsync(
                     new TextPrompt<string>("Enter text to find:")
@@ -350,17 +340,14 @@ public sealed class UpdateActivityTextCommand(StravaApiClient apiClient, RateLim
 
     private static string ApplyOperation(string original, string operation, OperationParams operationParams)
     {
-        return operation switch
-        {
-            Operations.Set => operationParams.NewValue ?? "",
-            Operations.AddPrefix => (operationParams.Prefix ?? "") + original,
-            Operations.AddSuffix => original + (operationParams.Suffix ?? ""),
-            Operations.FindReplace => original.Replace(
-                operationParams.FindText ?? "",
-                operationParams.ReplaceText ?? "",
-                StringComparison.OrdinalIgnoreCase),
-            _ => original
-        };
+        return TextTransformLogic.ApplyOperation(
+            original,
+            operation,
+            operationParams.NewValue,
+            operationParams.Prefix,
+            operationParams.Suffix,
+            operationParams.FindText,
+            operationParams.ReplaceText);
     }
 
     private static void DisplayActivitiesTable(List<StravaActivity> activities, bool showName)

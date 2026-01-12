@@ -1,12 +1,12 @@
 using System.Globalization;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class UpdateActivityFlagsCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
+public sealed class UpdateActivityFlagsCommand(IStravaApiClient apiClient, RateLimiter rateLimiter)
 {
     private static class FlagTypes
     {

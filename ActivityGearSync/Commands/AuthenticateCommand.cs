@@ -1,9 +1,9 @@
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class AuthenticateCommand(StravaAuthClient authClient)
+public sealed class AuthenticateCommand(IStravaAuthClient authClient)
 {
     public async Task<bool> ExecuteAsync(CancellationToken cancellationToken)
     {

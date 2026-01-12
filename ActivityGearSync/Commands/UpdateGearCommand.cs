@@ -1,20 +1,13 @@
 using System.Globalization;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
+public sealed class UpdateGearCommand(IStravaApiClient apiClient, RateLimiter rateLimiter)
 {
-    private static class GearFilters
-    {
-        public const string AllActivities = "All activities";
-        public const string NoGearAssigned = "No gear assigned";
-        public const string RemoveGear = "(Remove gear)";
-    }
-
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         AnsiConsole.Clear();
@@ -63,7 +56,7 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         string gearFilter = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Filter by [green]current gear[/]:")
-                .AddChoices([GearFilters.AllActivities, GearFilters.NoGearAssigned, .. allGear.Select(g => Markup.Escape(g.Name))]), cancellationToken);
+                .AddChoices([GearFilterLogic.GearFilters.AllActivities, GearFilterLogic.GearFilters.NoGearAssigned, .. allGear.Select(g => Markup.Escape(g.Name))]), cancellationToken);
 
         // Calculate date filter
         var (after, before) = DateRanges.Calculate(dateRange);
@@ -94,11 +87,8 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
             });
 
         // Apply filters
-        var filtered = activities.Where(a =>
-                (string.Equals(activityType, ActivityTypes.AllTypes, StringComparison.OrdinalIgnoreCase)
-                 || ActivityTypes.Matches(a, activityType))
-                && MatchesGearFilter(a, gearFilter, allGear))
-            .ToList();
+        var filtered = GearFilterLogic.FilterActivities(
+            activities, activityType, gearFilter, allGear, Markup.Escape);
 
         if (filtered.Count == 0)
         {
@@ -135,14 +125,14 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         AnsiConsole.MarkupLine("[bold yellow]Step 3:[/] Choose New Gear");
         AnsiConsole.WriteLine();
 
-        List<string> gearChoices = [GearFilters.RemoveGear, .. allGear.Select(g => $"{Markup.Escape(g.Name)} ({g.FormattedDistance})")];
+        List<string> gearChoices = [GearFilterLogic.GearFilters.RemoveGear, .. allGear.Select(g => $"{Markup.Escape(g.Name)} ({g.FormattedDistance})")];
 
         string selectedGearName = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title("Select [green]gear to assign[/]:")
                 .AddChoices(gearChoices), cancellationToken);
 
-        var targetGear = string.Equals(selectedGearName, GearFilters.RemoveGear, StringComparison.OrdinalIgnoreCase) ? null
+        var targetGear = string.Equals(selectedGearName, GearFilterLogic.GearFilters.RemoveGear, StringComparison.OrdinalIgnoreCase) ? null
             : allGear.FirstOrDefault(g => selectedGearName.StartsWith(Markup.Escape(g.Name), StringComparison.OrdinalIgnoreCase));
 
         // Step 6: Confirm
@@ -279,22 +269,6 @@ public sealed class UpdateGearCommand(StravaApiClient apiClient, RateLimiter rat
         }
 
         AnsiConsole.Write(table);
-    }
-
-    private static bool MatchesGearFilter(StravaActivity activity, string filter, List<StravaGear> allGear)
-    {
-        if (string.Equals(filter, GearFilters.AllActivities, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (string.Equals(filter, GearFilters.NoGearAssigned, StringComparison.OrdinalIgnoreCase))
-        {
-            return string.IsNullOrEmpty(activity.GearId);
-        }
-
-        var gear = allGear.FirstOrDefault(g => string.Equals(Markup.Escape(g.Name), filter, StringComparison.OrdinalIgnoreCase));
-        return gear != null && string.Equals(activity.GearId, gear.Id, StringComparison.OrdinalIgnoreCase);
     }
 
     private void UpdateProgressWithRateLimitInfo(ProgressTask task, int totalActivities)

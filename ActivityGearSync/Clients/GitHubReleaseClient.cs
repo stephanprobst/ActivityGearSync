@@ -1,11 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 
 namespace ActivityGearSync.Clients;
 
-public sealed class GitHubReleaseClient(HttpClient httpClient)
+public sealed class GitHubReleaseClient(HttpClient httpClient) : IGitHubReleaseClient
 {
     private static class GitHub
     {
