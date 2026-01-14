@@ -5,6 +5,7 @@ using Polly;
 using Spectre.Console;
 using ActivityGearSync.Commands;
 using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Shared;
 using ActivityGearSync.Storage;
 
@@ -23,7 +24,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<RateLimitHandler>();
 
     // Configure HttpClient for Strava API with resilience
-    services.AddHttpClient<StravaApiClient>()
+    services.AddHttpClient<IStravaApiClient, StravaApiClient>()
         .AddHttpMessageHandler<RateLimitHandler>()
         .AddResilienceHandler("StravaApi", builder =>
         {
@@ -58,11 +59,11 @@ static void ConfigureServices(IServiceCollection services)
     services.AddHttpClient();
 
     // GitHub client for updates
-    services.AddHttpClient<GitHubReleaseClient>();
+    services.AddHttpClient<IGitHubReleaseClient, GitHubReleaseClient>();
 
     // Services
     services.AddSingleton<TokenStorage>();
-    services.AddSingleton<StravaAuthClient>();
+    services.AddSingleton<IStravaAuthClient, StravaAuthClient>();
 
     // Commands
     services.AddTransient<SetupCommand>();
@@ -80,7 +81,7 @@ static void ConfigureServices(IServiceCollection services)
 static async Task RunApplicationAsync(ServiceProvider serviceProvider)
 {
     var tokenStorage = serviceProvider.GetRequiredService<TokenStorage>();
-    var authService = serviceProvider.GetRequiredService<StravaAuthClient>();
+    var authService = serviceProvider.GetRequiredService<IStravaAuthClient>();
 
     using var cts = new CancellationTokenSource();
     Console.CancelKeyPress += (_, _) =>
@@ -186,7 +187,7 @@ static List<MenuItem> BuildMenuChoices(bool isAuthenticated)
 static async Task ExecuteMenuChoiceAsync(
     MenuChoice choice,
     ServiceProvider serviceProvider,
-    StravaAuthClient authClient,
+    IStravaAuthClient authClient,
     CancellationToken cancellationToken)
 {
     switch (choice)

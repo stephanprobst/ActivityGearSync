@@ -1,12 +1,12 @@
 using System.Globalization;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class UpdateSportTypeCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
+public sealed class UpdateSportTypeCommand(IStravaApiClient apiClient, RateLimiter rateLimiter)
 {
     // Activity type filter options (high-level categories)
     private static class ActivityCategories

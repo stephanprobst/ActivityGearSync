@@ -1,12 +1,12 @@
 using System.Globalization;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class ViewActivitiesCommand(StravaApiClient apiClient)
+public sealed class ViewActivitiesCommand(IStravaApiClient apiClient)
 {
     private static class Columns
     {

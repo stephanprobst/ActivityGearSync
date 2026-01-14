@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <!-- Disable async naming rule for test methods -->
+    <NoWarn>$(NoWarn);IDE1006</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ActivityGearSync\ActivityGearSync.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Imposter" />
+    <PackageReference Include="TUnit" />
+  </ItemGroup>
+
+</Project>

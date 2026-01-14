@@ -1,12 +1,12 @@
 using System.Globalization;
-using ActivityGearSync.Clients;
+using ActivityGearSync.Interfaces;
 using ActivityGearSync.Models;
 using ActivityGearSync.Shared;
 using Spectre.Console;
 
 namespace ActivityGearSync.Commands;
 
-public sealed class ExportActivitiesCommand(StravaApiClient apiClient, RateLimiter rateLimiter)
+public sealed class ExportActivitiesCommand(IStravaApiClient apiClient, RateLimiter rateLimiter)
 {
     private const string ExportFolder = "exports";
 
