@@ -5,6 +5,7 @@ namespace ActivityGearSync.Shared;
 
 public static class EncryptionHelper
 {
+    private static readonly Lock KeyLock = new();
     private static readonly string KeyFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "ActivityGearSync",
@@ -64,31 +65,34 @@ public static class EncryptionHelper
 
     private static byte[] GetOrCreateKey()
     {
-        string directory = Path.GetDirectoryName(KeyFilePath)!;
-        if (!Directory.Exists(directory))
+        lock (KeyLock)
         {
-            Directory.CreateDirectory(directory);
-        }
+            string directory = Path.GetDirectoryName(KeyFilePath)!;
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
 
-        if (File.Exists(KeyFilePath))
-        {
-            return Convert.FromBase64String(File.ReadAllText(KeyFilePath));
-        }
+            if (File.Exists(KeyFilePath))
+            {
+                return Convert.FromBase64String(File.ReadAllText(KeyFilePath));
+            }
 
-        // Generate new 256-bit key
-        byte[] key = RandomNumberGenerator.GetBytes(32);
-        File.WriteAllText(KeyFilePath, Convert.ToBase64String(key));
+            // Generate new 256-bit key
+            byte[] key = RandomNumberGenerator.GetBytes(32);
+            File.WriteAllText(KeyFilePath, Convert.ToBase64String(key));
 
-        // Try to hide the key file
-        try
-        {
-            File.SetAttributes(KeyFilePath, FileAttributes.Hidden);
-        }
-        catch
-        {
-            // Ignore on platforms that don't support hidden attribute
-        }
+            // Try to hide the key file
+            try
+            {
+                File.SetAttributes(KeyFilePath, FileAttributes.Hidden);
+            }
+            catch
+            {
+                // Ignore on platforms that don't support hidden attribute
+            }
 
-        return key;
+            return key;
+        }
     }
 }
