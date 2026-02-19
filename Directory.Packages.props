@@ -6,15 +6,15 @@
   <ItemGroup>
     <PackageVersion Include="Imposter" Version="0.1.4" />
     <PackageVersion Include="Spectre.Console" Version="0.54.0" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.2.0" />
-    <PackageVersion Include="TUnit" Version="1.13.11" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.3" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0" />
+    <PackageVersion Include="TUnit" Version="1.14.0" />
   </ItemGroup>
   <!-- Build-time only dependencies -->
   <ItemGroup>
     <PackageVersion Include="SimpleBranchVersioning" Version="0.6.1" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.298" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.301" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.19.0.132793" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="AsyncFixer" Version="2.1.0" />
