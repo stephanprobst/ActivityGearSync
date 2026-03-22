@@ -4,12 +4,12 @@
   </PropertyGroup>
   <!-- Runtime dependencies -->
   <ItemGroup>
-    <PackageVersion Include="Imposter" Version="0.1.7" />
+    <PackageVersion Include="Imposter" Version="0.1.8" />
     <PackageVersion Include="Spectre.Console" Version="0.54.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.4.0" />
-    <PackageVersion Include="TUnit" Version="1.19.57" />
+    <PackageVersion Include="TUnit" Version="1.20.0" />
   </ItemGroup>
   <!-- Build-time only dependencies -->
   <ItemGroup>
