@@ -14,7 +14,7 @@
   <!-- Build-time only dependencies -->
   <ItemGroup>
     <PackageVersion Include="SimpleBranchVersioning" Version="0.6.1" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="2.0.302" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.25" />
     <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.21.0.135717" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="AsyncFixer" Version="2.1.0" />
