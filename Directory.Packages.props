@@ -5,17 +5,17 @@
   <!-- Runtime dependencies -->
   <ItemGroup>
     <PackageVersion Include="Imposter" Version="0.1.9" />
-    <PackageVersion Include="Spectre.Console" Version="0.57.1" />
-    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.9" />
-    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
-    <PackageVersion Include="TUnit" Version="1.56.35" />
+    <PackageVersion Include="Spectre.Console" Version="0.57.2" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.10" />
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />
+    <PackageVersion Include="TUnit" Version="1.63.0" />
   </ItemGroup>
   <!-- Build-time only dependencies -->
   <ItemGroup>
     <PackageVersion Include="SimpleBranchVersioning" Version="0.6.1" />
-    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.117" />
-    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.27.0.140913" />
+    <PackageVersion Include="Meziantou.Analyzer" Version="3.0.138" />
+    <PackageVersion Include="SonarAnalyzer.CSharp" Version="10.31.0.145097" />
     <PackageVersion Include="Roslynator.Analyzers" Version="4.15.0" />
     <PackageVersion Include="AsyncFixer" Version="2.1.0" />
   </ItemGroup>
